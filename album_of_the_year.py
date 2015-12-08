@@ -1,4 +1,4 @@
-from general_utilities import get_html, select_soup
+from general_utilities import get_html, select_soup, output_data
 
 def parse_contents(desired_contents): 
     '''
@@ -21,7 +21,7 @@ def parse_contents(desired_contents):
             if k == '.summaryPointsMisc':
                 values = []
                 value = v[summary_points_misc_idx]
-                while value.find('Other') != -1:
+                while value.find('Other') == -1:
                     values.append(value)
                     summary_points_misc_idx += 1
                     value = v[summary_points_misc_idx]
@@ -44,3 +44,4 @@ if __name__ == '__main__':
     css_selectors = ['.artistTitle', '.albumTitle', '.summaryPoints', '.summaryPointsMisc']
     desired_contents = select_soup(soup, css_selectors)
     final_lst = parse_contents(desired_contents)
+    output_data(final_lst, 'test_csv')

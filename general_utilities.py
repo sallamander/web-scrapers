@@ -1,4 +1,5 @@
 import requests
+import pandas as pd
 from bs4 import BeautifulSoup
 
 def get_html(url): 
@@ -29,7 +30,18 @@ def select_soup(soup, css_selectors):
 
     contents_dict = {selector: soup.select(selector) \
             for selector in css_selectors}
-    contents_dict = {k: [html.text for html in v] \
+    contents_dict = {k: [html.text.encode('ascii', 'xmlcharrefreplace') for html in v] \
             for k, v in contents_dict.iteritems()}
     return contents_dict
 
+def output_data(lst, filepath, format="csv"):
+    '''
+    Input: List of dictionaries
+    Output: Saved file
+
+    Save the list of dictionaries to the filepath location, 
+    using the inputted format (default is csv). 
+    '''
+
+    df = pd.DataFrame(lst)
+    df.to_csv(filepath)
