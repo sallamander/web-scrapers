@@ -99,4 +99,4 @@ if __name__ == '__main__':
     desired_contents = select_soup(soup, css_selectors)
     desired_contents_renamed = rename_keys(desired_contents)
     final_lst = parse_contents(desired_contents_renamed)
-    output_data(final_lst, 'test_csv.csv')
+    output_data(final_lst, 'test_csv.csv', replace_nulls=0)
