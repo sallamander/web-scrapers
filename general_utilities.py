@@ -60,10 +60,10 @@ def grab_contents_key(contents, key):
         contents_dct = {k: [html.text.encode('ascii', 'xmlcharrefreplace') \
                 for html in v] for k, v in contents.iteritems()}
     elif key == 'a': 
-        contents_dct = {k: [tag.find(key) for tag in v] \
+        contents_dct = {k: [tag.find(key) for tag in v if tag is not None] \
                 for k, v in contents.iteritems()}
     elif key == 'href': 
-        contents_dct = {k: [tag.get(key) for tag in v] \
+        contents_dct = {k: [tag.get(key) for tag in v if tag is not None] \
                 for k, v in contents.iteritems()}
 
     return contents_dct
