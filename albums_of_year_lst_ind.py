@@ -13,7 +13,7 @@ def process_album_title_hrefs(album_title_hrefs, album_titles):
     final_json_lst = []
     for idx, href in enumerate(album_title_hrefs.values()[0]):
         soup = get_html(base_url + href)
-        center_content = select_soup(soup, '#centerContent')
+        center_content = select_soup(soup, '#centerContent').values()[0][0]
         user_score = find_user_score(center_content)
         critic_score = find_critic_score(center_content)
         json_dct = {'Album Title': album_titles[idx], "User Score": user_score, 
@@ -31,7 +31,13 @@ def find_user_score(center_content):
     Parse the elements in the inputted bs4.element.Tag to grab the 
     average user score for the inputted album. 
     '''
-    pass
+
+    center_content_txt = center_content.text
+    user_score_idx = center_content_txt.find('USER SCORE') 
+    beg_idx, end_idx = user_score_idx + 10, user_score_idx + 12
+    user_score = int(center_content_txt[beg_idx:end_idx])
+
+    return user_score
 
 def find_critic_score(center_content): 
     '''
