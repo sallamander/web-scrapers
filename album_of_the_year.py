@@ -29,40 +29,38 @@ def parse_contents(desired_contents):
     lst_idx = 0 # Holds what index to start at in each value list. 
     points_misc_idx = 0 # This one has a slightly different format 
                                 # (potentially multiple values per artist/album). 
-    points_misc_keys_set = get_points_misc_keys(desired_contents["Summary Points Misc"])
     while lst_idx < 50: 
         json_dict = {}
         for k, v in desired_contents.iteritems(): 
-            if k == 'Summary Points Misc':
-                values, points_misc_idx = parse_points_misc(v, 
-                        points_misc_keys_set, points_misc_idx)
-            else: 
-                values = {k: v[lst_idx]}
-        
+            values, points_misc_idx = \
+                    parse_keys_contents(k, v, points_misc_idx, lst_idx)
             json_dict.update(values)
+            
         lst_idx += 1
         final_lst.append(json_dict)
 
     return final_lst
 
-def get_points_misc_keys(points_misc_lst): 
+def parse_keys_contents(k, v, points_misc_idx, lst_idx): 
     '''
-    Input: List
-    Output: Set 
-    
-    Parse the potential names for the values of points misc (i.e. Top 10, 
-    Top 25, 3rd Place, etc.), and output them in a list.
+    Input: String, List, Integer, Integer
+    Output: Dictionary, Integer
+
+    For each of the keys, parse the values for each artist and return 
+    a dictionary holding them. 
     '''
-    
-    # Each potential name for the values is some number of words followed by the 
-    # number of points it got in that category. So we want to just grab all of the
-    # words before the number, which is the last thing. 
 
-    points_misc_keys = set([' '.join(val.split()[:-1]) for val in points_misc_lst])
-    return points_misc_keys
+    if k == 'Summary Points Misc':
+        values, points_misc_idx = parse_points_misc(v, points_misc_idx)
+    elif k == 'Summary Points': 
+        value = v[lst_idx].split()[0]
+        values = {k: value}
+    else: 
+        values = {k: v[lst_idx]}
 
-def parse_points_misc(sum_points_misc_lst, possibilities_lst, 
-        sum_points_misc_idx):
+    return values, points_misc_idx 
+
+def parse_points_misc(sum_points_misc_lst, points_misc_idx):
     '''
     Input: List, Integer
     Output: Dict, Integer
@@ -75,21 +73,26 @@ def parse_points_misc(sum_points_misc_lst, possibilities_lst,
     ''' 
 
     values = {} 
-    split_text = sum_points_misc_lst[sum_points_misc_idx].split()
+    split_text = sum_points_misc_lst[points_misc_idx].split()
     attribute = ' '.join(split_text[:-1])
     value = split_text[-1].replace('(', '').replace(')', '')
 
-    # We know the last possible attribute for each author is "Other".
+    # We know the last possible attribute for each author is "Other", 
+    # at which point we need to move on to grabbing the next author's
+    # information.
     while attribute.find('Other') == -1:
         values[attribute] = value
-        sum_points_misc_idx += 1
-        split_text = sum_points_misc_lst[sum_points_misc_idx].split()
+        points_misc_idx += 1
+        # The value is always the last item present, surrounded by (),
+        # and the 1+ items before that are the attributes to which 
+        # those points belong. 
+        split_text = sum_points_misc_lst[points_misc_idx].split()
         attribute = ' '.join(split_text[:-1])
         value = split_text[-1].replace('(', '').replace(')', '')
     values[attribute] = value
-    sum_points_misc_idx += 1
+    points_misc_idx += 1
 
-    return values, sum_points_misc_idx 
+    return values, points_misc_idx 
 
 if __name__ == '__main__':
     URL = 'http://www.albumoftheyear.org/list/summary/2015/'
@@ -99,4 +102,4 @@ if __name__ == '__main__':
     desired_contents = select_soup(soup, css_selectors)
     desired_contents_renamed = rename_keys(desired_contents)
     final_lst = parse_contents(desired_contents_renamed)
-    output_data(final_lst, 'test_csv.csv', replace_nulls=0)
+    output_data(final_lst, 'data/test_csv.csv', replace_nulls=0)
