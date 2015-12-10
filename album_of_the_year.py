@@ -1,5 +1,5 @@
 from general_utilities import get_html, select_soup, \
-        output_data, grab_contents_key
+        output_data_to_mongo, grab_contents_key
 
 def rename_keys(input_dct): 
     '''
@@ -104,4 +104,4 @@ if __name__ == '__main__':
     desired_contents_text = grab_contents_key(desired_contents, "text")
     desired_contents_renamed = rename_keys(desired_contents_text)
     final_lst = parse_contents(desired_contents_renamed)
-    output_data(final_lst, 'data/test_csv.csv', replace_nulls=0)
+    output_data_to_mongo(final_lst, 'music', 'music_lists')

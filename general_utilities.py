@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+from pymongo import MongoClient
 from bs4 import BeautifulSoup
 
 def get_html(url): 
@@ -67,7 +68,7 @@ def grab_contents_key(contents, key):
 
     return contents_dct
 
-def output_data(lst, filepath, file_format="csv", replace_nulls=None):
+def output_data_to_file(lst, filepath, file_format="csv", replace_nulls=None):
     '''
     Input: List of dictionaries, String, String, Object
     Output: Saved file
@@ -85,3 +86,18 @@ def output_data(lst, filepath, file_format="csv", replace_nulls=None):
         df.to_json(filepath)
     else: 
         df.to_csv(filepath, index=False)
+
+def output_data_to_mongo(data, database_name, table_name): 
+    '''
+    Input: List, String, String 
+    Output: Data saved to Mongo
+
+    Save each of the json dictionaires to the inputted table_name in a Mongo
+    database and datatable. 
+    '''
+
+    mongo_client = MongoClient()
+    database = mongo_client[database_name]
+    datatable = database[table_name]
+    
+    datatable.insert_many(data)
