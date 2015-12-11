@@ -14,8 +14,8 @@ def process_album_title_hrefs(album_title_hrefs, album_titles):
     for idx, href in enumerate(album_title_hrefs.values()[0]):
         soup = get_html(base_url + href)
         center_content = select_soup(soup, '#centerContent').values()[0][0]
-        user_score = find_user_score(center_content)
-        critic_score = find_critic_score(center_content)
+        user_score = int(find_score(center_content, 'USER SCORE'))
+        critic_score = int(find_score(center_content, 'CRITIC SCORE'))
         json_dct = {'Album Title': album_titles[idx], "User Score": user_score, 
                     "Critic Score": critic_score}
 
@@ -23,7 +23,7 @@ def process_album_title_hrefs(album_title_hrefs, album_titles):
 
     return final_json_lst
 
-def find_user_score(center_content): 
+def find_score(content, score_str): 
     '''
     Input: bs4.element.Tag
     Output: Integer
@@ -32,27 +32,14 @@ def find_user_score(center_content):
     average user score for the inputted album. 
     '''
 
-    center_content_txt = center_content.text
-    user_score_idx = center_content_txt.find('USER SCORE') 
-    beg_idx, end_idx = user_score_idx + 10, user_score_idx + 12
-    user_score = int(center_content_txt[beg_idx:end_idx])
+    content_txt = content.text
+    score_idx = content_txt.find(score_str) 
+    score_str_len = len(score_str)
+    beg_idx = score_idx + score_str_len
+    end_idx = beg_idx + 2    
+    score = content_txt[beg_idx:end_idx]
 
-    return user_score
-
-def find_critic_score(center_content): 
-    '''
-    Input: bs4.element.Tag
-    Output: Integer
-
-    Parse the elements in the inputted bs4.element.Tag to grab the 
-    average critic score for the inputted album. 
-    '''
-    center_content_txt = center_content.text
-    critic_score_idx = center_content_txt.find('CRITIC SCORE') 
-    beg_idx, end_idx = critic_score_idx + 12, critic_score_idx + 14
-    critic_score = center_content_txt[beg_idx:end_idx]
-
-    return critic_score
+    return score
 
 if __name__ == '__main__': 
     URL = 'http://www.albumoftheyear.org/list/summary/2015/'
@@ -67,6 +54,4 @@ if __name__ == '__main__':
     final_json_lst = process_album_title_hrefs(album_title_hrefs, album_titles)
     output_data_to_mongo(final_json_lst, 'music', 'music_lists', 
             keys=["Album Title"])
-
-
 
