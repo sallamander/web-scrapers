@@ -47,7 +47,12 @@ def find_critic_score(center_content):
     Parse the elements in the inputted bs4.element.Tag to grab the 
     average critic score for the inputted album. 
     '''
-    pass
+    center_content_txt = center_content.text
+    critic_score_idx = center_content_txt.find('CRITIC SCORE') 
+    beg_idx, end_idx = critic_score_idx + 12, critic_score_idx + 14
+    critic_score = center_content_txt[beg_idx:end_idx]
+
+    return critic_score
 
 if __name__ == '__main__': 
     URL = 'http://www.albumoftheyear.org/list/summary/2015/'
