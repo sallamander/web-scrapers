@@ -63,7 +63,10 @@ if __name__ == '__main__':
     album_titles = grab_contents_key(album_titles_contents, 'text').values()[0]
     album_title_links = grab_contents_key(album_titles_contents, 'a')
     album_title_hrefs = grab_contents_key(album_title_links, 'href')
+
     final_json_lst = process_album_title_hrefs(album_title_hrefs, album_titles)
+    output_data_to_mongo(final_json_lst, 'music', 'music_lists', 
+            keys=["Album Title"])
 
 
 
