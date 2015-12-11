@@ -87,7 +87,7 @@ def output_data_to_file(lst, filepath, file_format="csv", replace_nulls=None):
     else: 
         df.to_csv(filepath, index=False)
 
-def output_data_to_mongo(data, database_name, table_name, keys=None): 
+def output_data_to_mongo(data, database_name, table_name, key=None): 
     '''
     Input: List, String, String, List
     Output: Data saved to Mongo
@@ -100,19 +100,20 @@ def output_data_to_mongo(data, database_name, table_name, keys=None):
     database = mongo_client[database_name]
     datatable = database[table_name]
     
-    if keys is not None: 
-        output_data_to_mongo_by_key(data, datatable, keys) 
+    if key is not None: 
+        output_data_to_mongo_by_key(data, datatable, key) 
     else: 
         datatable.insert_many(data)
 
-def output_data_to_mongo_by_key(data, table_name, keys):
+def output_data_to_mongo_by_key(data, table_name, key):
     '''
     Input: List, String, List
     Output: Data saved to Mongo
     '''
 
     for album in data: 
-        album_title = album['Album Title']
-        user_score, critic_score = album['User Score'], album['Critic Score']
-        table_name.update_one({'Album Title': album_title}, {'$set':  
-                {'User Score': user_score, 'Critic Score': critic_score}})
+        key_value = album[key]
+        # Not the most efficient way to do this, but this allows it 
+        # to be really general. 
+        for k, v in album.iteritems():
+            table_name.update_one({key: key_value}, {'$set': {k :v}})

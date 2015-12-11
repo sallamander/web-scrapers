@@ -53,5 +53,5 @@ if __name__ == '__main__':
 
     final_json_lst = process_album_title_hrefs(album_title_hrefs, album_titles)
     output_data_to_mongo(final_json_lst, 'music', 'music_lists', 
-            keys=["Album Title"])
+            key="Album Title")
 
