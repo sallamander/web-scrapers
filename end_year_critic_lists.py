@@ -1,4 +1,5 @@
-from general_utilities import get_html, select_soup, grab_contents_key
+from general_utilities import get_html, select_soup, \
+        grab_contents_key, output_data_to_mongo
 from albums_of_year_lst_ind import find_score
 from collections import defaultdict
 import re
@@ -30,14 +31,16 @@ def grab_critics_info(critics_names, critics_hrefs):
             post = soup.select('#post-' + str(num_albums_idx))[0]
 
             album_title, album_title_txt = get_album_title(post)            
+            '''
             critic_score = find_score(post, 'Critic Score') 
             user_score = find_score(post, 'User Score')
+            '''
 
             rating_text = regex.findall(album_title_txt)
             rating = parse_rating(rating_text, idx2)
 
-            critic_dct = {'Critic' : critic_name, 'Rating' : rating, 
-                    'User Score': user_score, 'Critic Score': critic_score}
+            critic_dct = {'Critic' : critic_name, 'Rating' : rating}
+            # 'User Score': user_score, 'Critic Score': critic_score}
             json_dct[album_title].append(critic_dct)
             num_albums_idx -= 1
 
@@ -78,8 +81,14 @@ def get_album_title(post):
     '''
 
     album_title_txt = post.select('.listLargeTitle')[0].text
-    album_title = album_title_txt.split('-')[-1]\
-            .encode('ascii', 'xmlcharrefreplace').strip()
+    split_album_title_txt = album_title_txt.split('-')
+
+    if len(split_album_title_txt) == 2 or 'Sleater' in split_album_title_txt:
+        album_title = split_album_title_txt[-1]\
+                .encode('ascii', 'xmlcharrefreplace').strip()
+    else: 
+        album_title = '-'.join(split_album_title_txt[1:])\
+                .encode('ascii', 'xmlcharrefreplace').strip()
 
     return album_title, album_title_txt
 
@@ -103,6 +112,23 @@ def parse_rating(rating_txt, idx):
 
     return rating
 
+def format_output(raw_output): 
+    '''
+    Input: Dictionary
+    Output: List
+
+    Reformat the dictionary so that we can easily insert it into our Mongo
+    database. Basically, right now the dictionary consists of album titles 
+    as the keys, and lists of their ratings on critics lists as the values. 
+    We need it to be a list of dictionaries in the format: 
+    
+    {'Album Title': album_title, 'Critics Scores' : critics_scores_lst}
+    '''
+
+    output_lst = [{"Album Title": k, "Critics Scores": v} for \
+            k, v in raw_output.iteritems()]
+    return output_lst
+
 if __name__ == '__main__':
     lists_url = 'http://www.albumoftheyear.org/lists.php'
 
@@ -112,4 +138,8 @@ if __name__ == '__main__':
     critics_links = grab_contents_key(critics_content, 'a')
     critics_hrefs = grab_contents_key(critics_links, 'href')
 
-    output = grab_critics_info(critics_names, critics_hrefs)
+    raw_output = grab_critics_info(critics_names, critics_hrefs)
+    formatted_output = format_output(raw_output)
+    output_data_to_mongo(formatted_output, 'music', 'music_lists', 
+                        key="Album Title")
+
