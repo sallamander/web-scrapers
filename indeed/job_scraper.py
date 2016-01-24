@@ -1,4 +1,5 @@
 import sys
+from general_utilities import get_html
 
 def format_query(job_title, job_location, radius=25): 
     """Structure the Indeed URL to query. 
@@ -13,7 +14,7 @@ def format_query(job_title, job_location, radius=25):
         radius: Within distance to search around the inputted job_location.
     """
 
-    URL='www.indeed.com/jobs?q={}&l={}&radius={}'.format(job_title, 
+    URL='http://www.indeed.com/jobs?q={}&l={}&radius={}'.format(job_title,
             job_location, radius)
 
     return URL
@@ -35,4 +36,7 @@ if __name__ == '__main__':
         base_URL = format_query(job_title, job_location, radius)
     else: 
         base_URL = format_query(job_title, job_location)
-
+    
+    # Get HTML for base query.
+    html = get_html(base_URL)
+    num_jobs_txt = html.select('#searchCount') 
