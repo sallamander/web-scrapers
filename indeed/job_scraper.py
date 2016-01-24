@@ -1,4 +1,5 @@
 import sys
+import re
 from general_utilities import get_html
 
 def format_query(job_title, job_location, radius=25): 
@@ -18,6 +19,26 @@ def format_query(job_title, job_location, radius=25):
             job_location, radius)
 
     return URL
+
+def parse_num_jobs_txt(num_jobs_txt): 
+    """Parse the text that holds the number of jobs to get the number. 
+
+    This will use a regex to find the number of jobs that match 
+    our search query. There will be three numbers in the search query - 
+    the first two will refer to the page results that we are on (e.g. 
+    1 of 10, 10 to 20, etc.), whereas the third number will be the 
+    actual number of jobs. It will then perform any parsing (i.e. remove
+    a comma if it is 4 digits). 
+
+    Args: 
+        num_jobs_txt: String that contains the number of jobs matching 
+            the search query.   
+    """
+
+    regex = re.compile('\d*[,]?\d+')
+    search_results = re.findall(regex, num_jobs_txt)
+    num_jobs = search_results[2].replace(',', '')
+    return num_jobs
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
@@ -39,4 +60,5 @@ if __name__ == '__main__':
     
     # Get HTML for base query.
     html = get_html(base_URL)
-    num_jobs_txt = html.select('#searchCount') 
+    num_jobs_txt = str(html.select('#searchCount'))
+    num_jobs = parse_num_jobs_txt(num_jobs_txt)
