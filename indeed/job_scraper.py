@@ -96,6 +96,30 @@ def request_info(row):
     # Now let's grab the href and pass that on to another function to 
     # get that info. 
     href = row.find('a').get('href')
+    json_dct['href'] = href
+    json_dct['posting_txt'] = query_href(href)
+
+def query_href(href): 
+    """Grab the text from the href. 
+
+    Now we want to actually follow the href that is given in the 
+    job posting, and grab the posting text from there. 
+
+    Args: 
+        href: String of the href to the job posting. 
+    """
+    json_dct['href'] = href
+    html = get('http://www.indeed.com' + href) if href.startswith('/') \
+            else get(href)
+    soup = BeautifulSoup(html.content, 'html.parser')
+
+    texts = soup.findAll(text=True)
+    visible_texts = filter(visible, texts)
+
+    return ''.join(visible_texts)
+
+def visible(element): 
+    pass
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
