@@ -1,6 +1,7 @@
 import sys
 import re
 import multiprocessing
+import threading
 from bs4 import BeautifulSoup
 from requests import get
 from general_utilities import get_html
@@ -62,14 +63,17 @@ def multiprocess_pages(base_URL, page_start):
             be set to. 
     """
 
-    url = base_URL + '&start=' + page_start
+    url = base_URL + '&start=' + str(page_start)
     html = get_html(url)
     # Each row corresponds to a job. 
     rows = html.select('.row')
-    threads = [threading.Thread(target=request_info, args=(row,)).start() \
-            for row in rows]
+    threads = []
+    for row in rows: 
+        thread = threading.Thread(target=request_info, args=(row,))
+        thread.start()
+        threads.append(thread)
     for thread in threads: 
-        t.join()
+        thread.join()
 
 def request_info(row): 
     """Grab relevant information from the row and store it in mongo.
@@ -108,7 +112,6 @@ def query_href(href):
     Args: 
         href: String of the href to the job posting. 
     """
-    json_dct['href'] = href
     html = get('http://www.indeed.com' + href) if href.startswith('/') \
             else get(href)
     soup = BeautifulSoup(html.content, 'html.parser')
@@ -119,7 +122,20 @@ def query_href(href):
     return ''.join(visible_texts)
 
 def visible(element): 
-    pass
+    """If the element is of the type we want to keep, return True. 
+
+    We want to filter out certain elements from the text that we will 
+    get back. We only want to keep text that is visible on the web page, 
+    and we'll use this function to do this. 
+
+    Args: 
+        element: String element to keep in or filter out. 
+    """
+    if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
+        return False
+    elif re.match('<!--.*-->', element):
+        return False
+    return True
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
