@@ -1,6 +1,8 @@
 import sys
 import re
 import multiprocessing
+from bs4 import BeautifulSoup
+from requests import get
 from general_utilities import get_html
 from functools import partial
 
@@ -63,10 +65,37 @@ def multiprocess_pages(base_URL, page_start):
     url = base_URL + '&start=' + page_start
     html = get_html(url)
     # Each row corresponds to a job. 
-    jobs = html.select('.row')
-    threads = [threading.Thread(target=request_info, args=(job,)).start()]
+    rows = html.select('.row')
+    threads = [threading.Thread(target=request_info, args=(row,)).start() \
+            for row in rows]
     for thread in threads: 
         t.join()
+
+def request_info(row): 
+    """Grab relevant information from the row and store it in mongo.
+
+    Each row will contain a number of features that we will want to 
+    grab. Then, we'll grab its href attribute, which will actually hold 
+    a link to the job posting. We'll query that link and grab all the 
+    text that is there. 
+
+    Args: 
+        row: bs4 Tag holding relevant info. 
+    """
+
+    json_dct = {}
+    # Holds the actual CSS selector as the key and the label I want to store
+    # the info. as as the key. 
+    possible_attributes = {'.jobtitle': "job_title", '.company': "company", \
+            '.location': "location", '.date': "date", \
+            '.iaLabel': "easy_apply"}
+    for k, v in possible_attributes.iteritems(): 
+        res = row.select(k)
+        if res: 
+            json_dct[v] = res[0].text
+    # Now let's grab the href and pass that on to another function to 
+    # get that info. 
+    href = row.find('a').get('href')
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
@@ -98,7 +127,6 @@ if __name__ == '__main__':
     max_start_position = 1000 if num_jobs >= 1000 else num_jobs
     # I'll need to be able to pass an iterable to the multiprocessing pool. 
     start_positions = range(0, max_start_position, 10)
-    count = 0
     execute_queries = partial(multiprocess_pages, base_URL)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(execute_queries, start_positions)
