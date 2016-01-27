@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from requests import get
 from general_utilities import get_html
 from functools import partial
+from ssl import SSLError
 
 def format_query(job_title, job_location, radius=25): 
     """Structure the Indeed URL to query. 
@@ -112,14 +113,17 @@ def query_href(href):
     Args: 
         href: String of the href to the job posting. 
     """
-    html = get('http://www.indeed.com' + href) if href.startswith('/') \
-            else get(href)
-    soup = BeautifulSoup(html.content, 'html.parser')
+    try:
+        html = get('http://www.indeed.com' + href) if href.startswith('/') \
+                else get(href)
+        soup = BeautifulSoup(html.content, 'html.parser')
 
-    texts = soup.findAll(text=True)
-    visible_texts = filter(visible, texts)
+        texts = soup.findAll(text=True)
+        visible_texts = filter(visible, texts)
+    except: 
+        visible_texts = ['SSLError', 'happened']
 
-    return ''.join(visible_texts)
+    return ' '.join(visible_texts)
 
 def visible(element): 
     """If the element is of the type we want to keep, return True. 
