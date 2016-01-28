@@ -90,8 +90,11 @@ def store_in_mongo(lst_of_dcts):
     client = MongoClient()
     db = client['job_postings']
     collection = db['indeed']
-
-    collection.insert_many(lst_of_dcts)
+    
+    if len(lst_of_dcts) == 1: 
+        collection.insert_one(lst_of_dcts)
+    else: 
+        collection.insert_many(lst_of_dcts)
     
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location

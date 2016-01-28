@@ -88,7 +88,7 @@ class RequestInfoThread(Thread):
         Args: 
             element: String element to keep in or filter out. 
         """
-        if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
+        if element.parent.name in ['style', '[document]', 'head', 'title']:
             return False
         elif re.match('<!--.*-->', element):
             return False
