@@ -1,5 +1,8 @@
 import datetime
+import re
 from threading import Thread
+from requests import get
+from bs4 import BeautifulSoup
 
 
 class RequestInfoThread(Thread): 
@@ -35,7 +38,7 @@ class RequestInfoThread(Thread):
         current_date = datetime.date.today().strftime("%m-%d-%Y")
         json_dct = {'search_title': self.job_title, \
                 'search_location': self.job_location, \
-                'search_date': curren_date}
+                'search_date': current_date}
         # Holds the actual CSS selector as the key and the label I want to store
         # the info. as as the key. 
         possible_attributes = {'.jobtitle': "job_title", '.company': "company", \
@@ -69,7 +72,8 @@ class RequestInfoThread(Thread):
 
             texts = soup.findAll(text=True)
             visible_texts = filter(self._visible, texts)
-        except: 
+        except Exception as e: 
+            print e 
             visible_texts = ['SSLError', 'happened']
 
         return ' '.join(visible_texts)

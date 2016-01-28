@@ -1,11 +1,9 @@
 import sys
-import re
 import multiprocessing
-from bs4 import BeautifulSoup
-from requests import get
+import re
+from pymongo import MongoClient
 from general_utilities import get_html
 from functools import partial
-from ssl import SSLError
 from request_threading import RequestInfoThread 
 
 def format_query(job_title, job_location, radius=25): 
@@ -79,6 +77,21 @@ def multiprocess_pages(base_URL, job_title, job_location, page_start):
     for thread in threads: 
         thread.join()
         mongo_update_lst.append(thread.json_dct)
+
+    store_in_mongo(mongo_update_lst)
+
+def store_in_mongo(lst_of_dcts): 
+    """Store the list of dictionaries in Mongo
+
+    Args: 
+        lst_of_dicts: List of dictionaries to insert into Mongo. 
+    """
+    
+    client = MongoClient()
+    db = client['job_postings']
+    collection = db['indeed']
+
+    collection.insert_many(lst_of_dcts)
     
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
