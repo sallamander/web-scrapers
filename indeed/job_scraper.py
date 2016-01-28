@@ -19,8 +19,8 @@ def format_query(job_title, job_location, radius=25):
         radius: Within distance to search around the inputted job_location.
     """
 
-    URL='http://www.indeed.com/jobs?q={}&l={}&radius={}'.format(job_title,
-            job_location, radius)
+    URL='http://www.indeed.com/jobs?q={}&l={}&radius={}&fromage=last&sort=date'.\
+        format(job_title, job_location, radius)
 
     return URL
 
@@ -111,11 +111,11 @@ if __name__ == '__main__':
     else: 
         base_URL = format_query(job_title, job_location)
     
+    print base_URL
     # Get HTML for base query.
     html = get_html(base_URL)
     num_jobs_txt = str(html.select('#searchCount'))
     num_jobs = int(parse_num_jobs_txt(num_jobs_txt))
-
     # Now we need to cycle through all of the job postings that we can and 
     # grab the url pointing to it, to then query it. All of the jobs should 
     # be available via the .turnstileLink class, and then the href attribute
