@@ -6,24 +6,6 @@ from general_utilities import get_html
 from functools import partial
 from request_threading import RequestInfoThread 
 
-def format_query(job_title, job_location, radius=25): 
-    """Structure the Indeed URL to query. 
-
-    The format of the URL used for searching is: 
-
-    www.indeed.com/jobs?q={job_title}&l={location}&radius={radius}
-
-    Args: 
-        job_title: String of the job title to search for. 
-        job_location: City of where to search for jobs. 
-        radius: Within distance to search around the inputted job_location.
-    """
-
-    URL='http://www.indeed.com/jobs?q={}&l={}&radius={}&fromage=last&sort=date'.\
-        format(job_title, job_location, radius)
-
-    return URL
-
 def parse_num_jobs_txt(num_jobs_txt): 
     """Parse the text that holds the number of jobs to get the number. 
 
@@ -80,22 +62,6 @@ def multiprocess_pages(base_URL, job_title, job_location, page_start):
 
     store_in_mongo(mongo_update_lst)
 
-def store_in_mongo(lst_of_dcts): 
-    """Store the list of dictionaries in Mongo
-
-    Args: 
-        lst_of_dicts: List of dictionaries to insert into Mongo. 
-    """
-    
-    client = MongoClient()
-    db = client['job_postings']
-    collection = db['indeed']
-    
-    if len(lst_of_dcts) == 1: 
-        collection.insert_one(lst_of_dcts)
-    else: 
-        collection.insert_many(lst_of_dcts)
-    
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
     # will be passed in, so I'll attempt to get both of those within
