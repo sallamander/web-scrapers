@@ -46,7 +46,7 @@ def parse_num_jobs_txt(num_jobs_txt):
     num_jobs = search_results[2].replace(',', '')
     return num_jobs
 
-def multiprocess_pages(base_URL, page_start): 
+def multiprocess_pages(base_URL, job_title, job_location, page_start): 
     """Grab the URLS and other relevant info. from job postings on the page. 
 
     The Indeed URL used for job searching takes another parameter, 
@@ -60,6 +60,8 @@ def multiprocess_pages(base_URL, page_start):
     Args: 
         base_URL: String that holds the base URL to add the page_start 
             parameter to. 
+        job_title: String holding the job title used for the search
+        job_location: String holding the job location used for the search 
         page_start: Integer of what the `start` parameter in the URL should
             be set to. 
     """
@@ -71,13 +73,13 @@ def multiprocess_pages(base_URL, page_start):
     threads = []
     mongo_update_lst = []
     for row in rows: 
-        thread = RequestInfoThread(row)
+        thread = RequestInfoThread(row, job_title, job_location)
         thread.start()
         threads.append(thread)
     for thread in threads: 
         thread.join()
         mongo_update_lst.append(thread.json_dct)
-
+    
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
     # will be passed in, so I'll attempt to get both of those within
@@ -108,6 +110,7 @@ if __name__ == '__main__':
     max_start_position = 1000 if num_jobs >= 1000 else num_jobs
     # I'll need to be able to pass an iterable to the multiprocessing pool. 
     start_positions = range(0, max_start_position, 10)
-    execute_queries = partial(multiprocess_pages, base_URL)
+    execute_queries = partial(multiprocess_pages, base_URL, \
+            job_title, job_location)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(execute_queries, start_positions)

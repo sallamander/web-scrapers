@@ -1,4 +1,6 @@
+import datetime
 from threading import Thread
+
 
 class RequestInfoThread(Thread): 
     """Inherits from Thread so I can store results of my threading. 
@@ -9,9 +11,11 @@ class RequestInfoThread(Thread):
     the class so that I can access them later. 
     """
 
-    def __init__(self, row): 
+    def __init__(self, row, job_title, job_location): 
         super(RequestInfoThread, self).__init__()
         self.row = row
+        self.job_title = job_title
+        self.job_location = job_location
 
     def run(self): 
         self.json_dct = self._request_info()
@@ -27,8 +31,11 @@ class RequestInfoThread(Thread):
         Args: 
             row: bs4 Tag holding relevant info. 
         """
-
-        json_dct = {}
+        
+        current_date = datetime.date.today().strftime("%m-%d-%Y")
+        json_dct = {'search_title': self.job_title, \
+                'search_location': self.job_location, \
+                'search_date': curren_date}
         # Holds the actual CSS selector as the key and the label I want to store
         # the info. as as the key. 
         possible_attributes = {'.jobtitle': "job_title", '.company': "company", \
