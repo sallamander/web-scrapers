@@ -1,3 +1,6 @@
+from bs4 import BeautifulSoup
+import requests
+
 def format_query(base_url, query_parameters): 
     """Structure a URL query given inputted parameters. 
 

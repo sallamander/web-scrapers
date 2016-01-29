@@ -1,8 +1,12 @@
 import sys
+import os
+wd = os.path.abspath('.')
+sys.path.append(wd + '/../')
 import multiprocessing
 import re
 from pymongo import MongoClient
-from general_utilities import get_html
+from general_utilities.query_utilities import get_html, format_query
+from general_utilities.storage_utilities import store_in_mongo
 from functools import partial
 from request_threading import RequestInfoThread 
 
@@ -60,29 +64,29 @@ def multiprocess_pages(base_URL, job_title, job_location, page_start):
         thread.join()
         mongo_update_lst.append(thread.json_dct)
 
-    store_in_mongo(mongo_update_lst)
+    store_in_mongo(mongo_update_lst, 'job_postings', 'indeed')
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
     # will be passed in, so I'll attempt to get both of those within
     # a try except and throw an error otherwise. 
     try: 
-        job_title = sys.argv[1]
+        job_title = sys.argv[1].split()
         job_location = sys.argv[2]
     except IndexError: 
         raise Exception('Program needs a job title and job location inputted!')
 
-    # I don't expect a radius, so I'll just check the length first and
-    # grab it if its there. 
-    if len(sys.argv) == 4: 
-        radius = sys.argv[3]
-        base_URL = format_query(job_title, job_location, radius)
-    else: 
-        base_URL = format_query(job_title, job_location)
-    
-    print base_URL
+    radius = sys.argv[3]
+    base_URL = 'https://www.indeed.com/jobs?'
+    query_parameters = ['q={}'.format('+'.join(job_title)),
+            '&l={}'.format(job_location), '&radius={}'.format(radius), 
+            '&sort=date', '&fromage=last']
+
+    query_URL = format_query(base_URL, query_parameters)
+    print query_URL
+
     # Get HTML for base query.
-    html = get_html(base_URL)
+    html = get_html(query_URL)
     num_jobs_txt = str(html.select('#searchCount'))
     num_jobs = int(parse_num_jobs_txt(num_jobs_txt))
     # Now we need to cycle through all of the job postings that we can and 
@@ -92,7 +96,7 @@ if __name__ == '__main__':
     max_start_position = 1000 if num_jobs >= 1000 else num_jobs
     # I'll need to be able to pass an iterable to the multiprocessing pool. 
     start_positions = range(0, max_start_position, 10)
-    execute_queries = partial(multiprocess_pages, base_URL, \
+    execute_queries = partial(multiprocess_pages, query_URL, \
             job_title, job_location)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(execute_queries, start_positions)
