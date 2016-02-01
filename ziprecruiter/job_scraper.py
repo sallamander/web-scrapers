@@ -1,3 +1,8 @@
+import sys
+import os
+wd = os.path.abspath('.')
+sys.path.append(wd + '/../')
+from general_utilities.query_utilities import get_html, format_query
 
 if __name__ == '__main__': 
     # I expect that at the very least a job title, job location, and radius
@@ -14,5 +19,10 @@ if __name__ == '__main__':
     query_parameters = ['search={}'.format('+'.join(job_title)),
             '&location={}'.format(job_location), '&radius={}'.format(radius), 
             '&days=5']
+
+    query_URL = format_query(base_URL, query_parameters)
+
+    # Get HTML for base query. 
+    html = get_html(query_URL)
 
     
