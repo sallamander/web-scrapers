@@ -6,6 +6,7 @@ import re
 import multiprocessing
 from functools import partial
 from general_utilities.query_utilities import get_html, format_query
+from request_threading import RequestInfoThread
 
 def parse_num_jobs_txt(num_jobs_txt): 
     """Parse the text that holds the number of jobs to get the number. 
@@ -31,8 +32,20 @@ def multiprocess_pages(base_URL, job_title, job_location, page_num):
     """Grab the URLs and other relevant info. from job postings on the page. 
 
     """
-    pass
 
+    url = query_URL + '&page=' + str(page_num)
+    html = get_html(url)
+    rows = html.select('.job_result')
+    threads = []
+    mongo_update_lst = []
+    for row in rows: 
+        thread = RequestInfoThread(row, job_title, job_location)
+        thread.start()
+        threads.append(thread)
+    for thread in threads: 
+        thread.join()
+        mongo_update_lst.append(thread.json_dct)
+    
 if __name__ == '__main__': 
     # I expect that at the very least a job title, job location, and radius
     # will be passed in, so I'll attempt to get both of those within
@@ -62,9 +75,13 @@ if __name__ == '__main__':
     # pages we'll cyle through will be num_jobs / 20. The caveat, though
     # is that they only give 20 pages to look through at maximum (hence 
     # the min below). 
-    pages = min(21, num_jobs / 20.)
+    pages = min(21, num_jobs / 20 + 1)
     page_positions = range(0, pages)
+    for page_position in page_positions: 
+        multiprocess_pages(query_URL, job_title, job_location, page_position)
+    '''
     execute_queries = partial(mutliprocess_pages, query_URL,
             job_title, job_location)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(execute_queries, page_positions)
+    '''
