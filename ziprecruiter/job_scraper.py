@@ -3,6 +3,8 @@ import os
 wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import re
+import multiprocessing
+from functools import partial
 from general_utilities.query_utilities import get_html, format_query
 
 def parse_num_jobs_txt(num_jobs_txt): 
@@ -24,6 +26,12 @@ def parse_num_jobs_txt(num_jobs_txt):
     search_results = re.findall(regex, num_jobs_txt)
     num_jobs = search_results[0].replace(',', '')
     return num_jobs
+
+def multiprocess_pages(base_URL, job_title, job_location, page_num): 
+    """Grab the URLs and other relevant info. from job postings on the page. 
+
+    """
+    pass
 
 if __name__ == '__main__': 
     # I expect that at the very least a job title, job location, and radius
@@ -49,3 +57,14 @@ if __name__ == '__main__':
     num_jobs_txt = str(html.select('#job_results_headline')[0].text)
     num_jobs = int(parse_num_jobs_txt(num_jobs_txt))
     
+    # Here we'll cycle through the pages of jobs to grab all of the 
+    # info. that we want. Each page holds 20 jobs, so the number of 
+    # pages we'll cyle through will be num_jobs / 20. The caveat, though
+    # is that they only give 20 pages to look through at maximum (hence 
+    # the min below). 
+    pages = min(21, num_jobs / 20.)
+    page_positions = range(0, pages)
+    execute_queries = partial(mutliprocess_pages, query_URL,
+            job_title, job_location)
+    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+    pool.map(execute_queries, page_positions)
