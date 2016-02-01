@@ -1,5 +1,10 @@
-from general_utilities import get_html, select_soup, \
-        output_data_to_mongo, grab_contents_key
+import sys
+import os
+wd = os.path.abspath('.')
+sys.path.append(wd + '/../')
+from special_utilities import select_soup, grab_contents_key
+from general_utilities.query_utilities import get_html, format_query
+from general_utilities.storage_utilities import store_in_mongo
 
 def rename_keys(input_dct): 
     '''
@@ -96,7 +101,13 @@ def parse_points_misc(sum_points_misc_lst, points_misc_idx):
     return values, points_misc_idx 
 
 if __name__ == '__main__':
-    URL = 'http://www.albumoftheyear.org/list/summary/2015/'
+    try: 
+        year = sys.argv[1]
+    except Exception as e: 
+        print e
+        raise Exception('<Usage> Input a year to grab music data for.')
+
+    URL = 'http://www.albumoftheyear.org/list/summary/' + year + '/'
     soup = get_html(URL) 
 
     css_selectors = ['.artistTitle', '.albumTitle', '.summaryPoints', '.summaryPointsMisc']
@@ -104,4 +115,4 @@ if __name__ == '__main__':
     desired_contents_text = grab_contents_key(desired_contents, "text")
     desired_contents_renamed = rename_keys(desired_contents_text)
     final_lst = parse_contents(desired_contents_renamed)
-    output_data_to_mongo(final_lst, 'music', 'music_lists')
+    store_in_mongo(final_lst, 'music', 'music_lists')

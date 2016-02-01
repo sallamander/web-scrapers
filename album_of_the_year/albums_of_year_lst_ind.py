@@ -1,5 +1,10 @@
-from general_utilities import get_html, select_soup, \
-                output_data_to_mongo, grab_contents_key
+import os
+import sys
+wd = os.path.abspath('.')
+sys.path.append(wd + '/../')
+from special_utilities import select_soup, grab_contents_key
+from general_utilities.query_utilities import get_html, format_query
+from general_utilities.storage_utilities import store_in_mongo
 
 def process_album_title_hrefs(album_title_hrefs, album_titles): 
     '''
@@ -42,7 +47,13 @@ def find_score(content, score_str):
     return score
 
 if __name__ == '__main__': 
-    URL = 'http://www.albumoftheyear.org/list/summary/2015/'
+    try: 
+        year = sys.argv[1]
+    except Exception as e: 
+        print e
+        raise Exception('<Usage> Input a year to grab data music data for.')
+
+    URL = 'http://www.albumoftheyear.org/list/summary/' + year + '/'
     soup = get_html(URL) 
 
     css_selectors = ['.albumTitle']
@@ -52,6 +63,6 @@ if __name__ == '__main__':
     album_title_hrefs = grab_contents_key(album_title_links, 'href')
 
     final_json_lst = process_album_title_hrefs(album_title_hrefs, album_titles)
-    output_data_to_mongo(final_json_lst, 'music', 'music_lists', 
+    store_in_mongo(final_json_lst, 'music', 'music_lists', 
             key="Album Title")
 

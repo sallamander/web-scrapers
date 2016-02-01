@@ -1,8 +1,13 @@
-from general_utilities import get_html, select_soup, \
-        grab_contents_key, output_data_to_mongo
-from albums_of_year_lst_ind import find_score
+import sys
+import os
+wd = os.path.abspath('.')
+sys.path.append(wd + '/../')
 from collections import defaultdict
 import re
+from special_utilities import select_soup, grab_contents_key
+from general_utilities.query_utilities import get_html, format_query
+from general_utilities.storage_utilities import store_in_mongo
+from albums_of_year_lst_ind import find_score
 
 def grab_critics_info(critics_names, critics_hrefs):
     '''
@@ -140,6 +145,6 @@ if __name__ == '__main__':
 
     raw_output = grab_critics_info(critics_names, critics_hrefs)
     formatted_output = format_output(raw_output)
-    output_data_to_mongo(formatted_output, 'music', 'music_lists', 
+    store_in_mongo(formatted_output, 'music', 'music_lists', 
                         key="Album Title")
 
