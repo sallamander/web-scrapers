@@ -67,23 +67,22 @@ def multiprocess_pages(base_URL, job_title, job_location, page_start):
     store_in_mongo(mongo_update_lst, 'job_postings', 'indeed')
 
 if __name__ == '__main__':
-    # I expect that at the very least a job title and job location
+    # I expect that at the very least a job title, job location, and radius
     # will be passed in, so I'll attempt to get both of those within
     # a try except and throw an error otherwise. 
     try: 
         job_title = sys.argv[1].split()
         job_location = sys.argv[2]
+        radius = sys.argv[3]
     except IndexError: 
-        raise Exception('Program needs a job title and job location inputted!')
+        raise Exception('Program needs a job title, job location, and radius inputted!')
 
-    radius = sys.argv[3]
     base_URL = 'https://www.indeed.com/jobs?'
     query_parameters = ['q={}'.format('+'.join(job_title)),
             '&l={}'.format(job_location), '&radius={}'.format(radius), 
             '&sort=date', '&fromage=last']
 
     query_URL = format_query(base_URL, query_parameters)
-    print query_URL
 
     # Get HTML for base query.
     html = get_html(query_URL)
