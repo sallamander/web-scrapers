@@ -72,14 +72,14 @@ if __name__ == '__main__':
     # a try except and throw an error otherwise. 
     try: 
         job_title = sys.argv[1].split()
-        job_location = sys.argv[2]
+        job_location = sys.argv[2].split()
         radius = sys.argv[3]
     except IndexError: 
         raise Exception('Program needs a job title, job location, and radius inputted!')
 
     base_URL = 'https://www.indeed.com/jobs?'
     query_parameters = ['q={}'.format('+'.join(job_title)),
-            '&l={}'.format(job_location), '&radius={}'.format(radius), 
+            '&l={}'.format('+'.join(job_location)), '&radius={}'.format(radius), 
             '&sort=date', '&fromage=last']
 
     query_URL = format_query(base_URL, query_parameters)
