@@ -15,7 +15,7 @@ class RequestInfoThread(Thread):
 
     def __init__(self, job_result, job_title, job_location): 
         super(RequestInfoThread, self).__init__()
-        self.job_result
+        self.job_result = job_result
         self.job_title = job_title
         self.job_location = job_location
 
@@ -66,7 +66,7 @@ class RequestInfoThread(Thread):
             href: String of the href to the job posting. 
         """
         try:
-            html = get('http://www.indeed.com' + href) if href.startswith('/') \
+            html = get('http://www.simplyhired.com' + href) if href.startswith('/') \
                     else get(href)
             soup = BeautifulSoup(html.content, 'html.parser')
 

@@ -3,7 +3,10 @@ import os
 wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import re
+import multiprocessing
+from functools import partial
 from general_utilities.query_utilities import format_query, get_html
+from general_utilities.storage_utilities import store_in_mongo
 from request_threading import RequestInfoThread
 
 def parse_num_jobs_txt(num_jobs_txt): 
@@ -46,10 +49,11 @@ def multiprocess_pages(base_URL, job_title, job_location, page_number):
             be set to. 
     """
 
-    url = base_URL + '&pn=' + str(page_start)
+    url = base_URL + '&pn=' + str(page_number)
     html = get_html(url)
     # Each row corresponds to a job. 
-    jobs = html.select('.card-top')
+    jobs = html.select('.js-job')
+    print len(jobs)
     threads = []
     mongo_update_lst = []
     for job in jobs: 
@@ -59,7 +63,7 @@ def multiprocess_pages(base_URL, job_title, job_location, page_number):
     for thread in threads: 
         thread.join()
         mongo_update_lst.append(thread.json_dct)
-
+    
     store_in_mongo(mongo_update_lst, 'job_postings', 'simply_hired')
 
 if __name__ == '__main__':
