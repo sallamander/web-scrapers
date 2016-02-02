@@ -4,6 +4,7 @@ wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import re
 from general_utilities.query_utilities import format_query, get_html
+from request_threading import RequestInfoThread
 
 def parse_num_jobs_txt(num_jobs_txt): 
     """Parse the text that holds the number of jobs to get the number. 
@@ -45,7 +46,21 @@ def multiprocess_pages(base_URL, job_title, job_location, page_number):
             be set to. 
     """
 
-    pass
+    url = base_URL + '&pn=' + str(page_start)
+    html = get_html(url)
+    # Each row corresponds to a job. 
+    jobs = html.select('.card-top')
+    threads = []
+    mongo_update_lst = []
+    for job in jobs: 
+        thread = RequestInfoThread(job, job_title, job_location)
+        thread.start()
+        threads.append(thread)
+    for thread in threads: 
+        thread.join()
+        mongo_update_lst.append(thread.json_dct)
+
+    store_in_mongo(mongo_update_lst, 'job_postings', 'indeed')
 
 if __name__ == '__main__':
     # I expect that at the very least a job title, job location, and radius
