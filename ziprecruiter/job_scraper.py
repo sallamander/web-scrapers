@@ -6,6 +6,7 @@ import re
 import multiprocessing
 from functools import partial
 from general_utilities.query_utilities import get_html, format_query
+from general_utilities.storage_utilities import store_in_mongo
 from request_threading import RequestInfoThread
 
 def parse_num_jobs_txt(num_jobs_txt): 
@@ -31,6 +32,21 @@ def parse_num_jobs_txt(num_jobs_txt):
 def multiprocess_pages(base_URL, job_title, job_location, page_num): 
     """Grab the URLs and other relevant info. from job postings on the page. 
 
+    The ZipRecruiter URL used for job searching takes an additional 
+    parameter, `page`, that allows you to start the job search at page 
+    0-20 (20 is the max). I can use this to grab job results from multiple
+    pages at once. This function here takes in the base_URL, and then 
+    adds that page={page_num} parameter to the URL, and then queries it. 
+    It passes the results on to a thread to grab the details from each 
+    job posting. 
+
+    Args: 
+        base_URL: String that holds the base URL to add the page_num 
+            parameter to. 
+        job_title: String holding the job title used for the search 
+        job_location: String holding the job location used for the search
+        page_num: Integer of what the `page` paramter in the URL should 
+            be set to. 
     """
 
     url = query_URL + '&page=' + str(page_num)
@@ -45,6 +61,8 @@ def multiprocess_pages(base_URL, job_title, job_location, page_num):
     for thread in threads: 
         thread.join()
         mongo_update_lst.append(thread.json_dct)
+
+    store_in_mongo(mongo_update_lst, 'job_postings', 'ziprecruiter')
     
 if __name__ == '__main__': 
     # I expect that at the very least a job title, job location, and radius
