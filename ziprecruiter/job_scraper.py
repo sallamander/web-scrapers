@@ -94,12 +94,8 @@ if __name__ == '__main__':
     # is that they only give 20 pages to look through at maximum (hence 
     # the min below). 
     pages = min(21, num_jobs / 20 + 1)
-    page_positions = range(0, pages)
-    for page_position in page_positions: 
-        multiprocess_pages(query_URL, job_title, job_location, page_position)
-    '''
-    execute_queries = partial(mutliprocess_pages, query_URL,
+    page_positions = range(1, pages + 1)
+    execute_queries = partial(multiprocess_pages, query_URL,
             job_title, job_location)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(execute_queries, page_positions)
-    '''
