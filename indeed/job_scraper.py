@@ -37,9 +37,9 @@ def multiprocess_pages(base_URL, job_title, job_location, page_start):
     `start`, that allows you to start the job search at jobs 10-20, 
     20-30, etc. I can use this to grab job results from multiple pages at
     once. This function takes in the base_URL and then adds that
-    start={page_start} parameter to the URL, and the queries. It will grab
-    all of the URLS to the actual postings, along with the job title, company, 
-    etc. 
+    start={page_start} parameter to the URL, and then queries it. 
+    It passes the results on to a thread to grab the details from each
+    job posting.
 
     Args: 
         base_URL: String that holds the base URL to add the page_start 
