@@ -60,7 +60,7 @@ def multiprocess_pages(base_URL, job_title, job_location, page_number):
         thread.join()
         mongo_update_lst.append(thread.json_dct)
 
-    store_in_mongo(mongo_update_lst, 'job_postings', 'indeed')
+    store_in_mongo(mongo_update_lst, 'job_postings', 'simply_hired')
 
 if __name__ == '__main__':
     # I expect that at the very least a job title, job location, and radius
