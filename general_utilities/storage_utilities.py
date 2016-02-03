@@ -17,7 +17,7 @@ def store_in_mongo(lst_of_dcts, db_name, collection_name, key=None):
         store_in_mongo_by_key(lst_of_dcts, collection, key)
     else: 
         if len(lst_of_dcts) == 1: 
-            collection.insert_one(lst_of_dcts)
+            collection.insert_one(lst_of_dcts[0])
         else: 
             collection.insert_many(lst_of_dcts)
 
