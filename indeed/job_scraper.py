@@ -80,7 +80,7 @@ if __name__ == '__main__':
     base_URL = 'https://www.indeed.com/jobs?'
     query_parameters = ['q={}'.format('+'.join(job_title)),
             '&l={}'.format('+'.join(job_location)), '&radius={}'.format(radius), 
-            '&sort=date', '&fromage=last']
+            '&sort=date', '&fromage=5']
 
     query_URL = format_query(base_URL, query_parameters)
 

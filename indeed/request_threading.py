@@ -30,9 +30,6 @@ class RequestInfoThread(Thread):
         grab. Then, we'll grab its href attribute, which will actually hold 
         a link to the job posting. We'll query that link and grab all the 
         text that is there. 
-
-        Args: 
-            row: bs4 Tag holding relevant info. 
         """
         
         current_date = datetime.date.today().strftime("%m-%d-%Y")
