@@ -96,6 +96,6 @@ if __name__ == '__main__':
     pages = min(21, num_jobs / 20 + 1)
     page_positions = range(1, pages + 1)
     execute_queries = partial(multiprocess_pages, query_URL,
-            job_title, job_location)
+            ' '.join(job_title), ' '.join(job_location))
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(execute_queries, page_positions)

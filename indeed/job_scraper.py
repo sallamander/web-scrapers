@@ -96,6 +96,6 @@ if __name__ == '__main__':
     # I'll need to be able to pass an iterable to the multiprocessing pool. 
     start_positions = range(0, max_start_position, 10)
     execute_queries = partial(multiprocess_pages, query_URL, \
-            job_title, job_location)
+            ' '.join(job_title), ' '.join(job_location))
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(execute_queries, start_positions)

@@ -53,7 +53,6 @@ def multiprocess_pages(base_URL, job_title, job_location, page_number):
     html = get_html(url)
     # Each row corresponds to a job. 
     jobs = html.select('.js-job')
-    print len(jobs)
     threads = []
     mongo_update_lst = []
     for job in jobs: 
@@ -94,6 +93,6 @@ if __name__ == '__main__':
     max_pages = num_jobs / 10 + 1
     page_numbers = range(1, max_pages + 1)
     execute_queries = partial(multiprocess_pages, query_URL, \
-            job_title, job_location)
+            ' '.join(job_title), ' '.join(job_location))
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(execute_queries, page_numbers)
