@@ -1,10 +1,10 @@
 # SimplyHired Web-Scraper
 
-This folder contains a web-scraper to scrape [SimplyHired](http://www.simplyhired.com/) for jobs. It is built to scrape all of the jobs that SimplyHired returns for a given job title, job location, and radius. In order to get all the jobs that it returns (rather than being limited by a certain number of pages), it by default searches for only those jobs posted in the last 5 days (I'll describe in the usage how to change this). The scraper will give back all of the information that you could get for every job within the search query (job title, job location, and job company), and the actual job posting text at the post's URL (if you can get it - a very small number of places hide it).  
+This folder contains a web-scraper to scrape [SimplyHired](http://www.simplyhired.com/) for jobs. It is built to scrape all of the jobs that SimplyHired returns for a given job title, job location, and radius. In order to get all the jobs that it returns (rather than being limited by a certain number of pages), it by default searches for only those jobs posted in the last 5 days (I'll describe in the usage how to change this). The scraper will give back all of the information that you could get for every job within the search query (job title, job location, and job company), and the actual job posting text at the post's URL (if you can get it - a very small number of places hide it from requests). 
 
 ## Usage
 
-This scraper is built to scrape SimplyHired for an inputted job title, job location, and radius (in that order). To use it, you can simply call from the command line as follows: 
+This scraper is built to scrape SimplyHired for an inputted job title, job location, and radius (in that order). To use it, you can simply call it from the command line as follows: 
 
 ```python 
 python job_scraper.py 'Data Science' 'Denver' 25
