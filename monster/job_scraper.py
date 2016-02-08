@@ -12,7 +12,7 @@ def issue_query(driver, job_title, job_location):
     need to input a job location and job title into to find jobs.
 
     Args: 
-        driver: Selenium WebDriver
+        driver: Selenium webdriver
         job_title: String holding the job title to query for. 
         job_location: String holding the job location to query for. 
     """
@@ -29,6 +29,25 @@ def issue_query(driver, job_title, job_location):
     # Locate and click the search button.
     search_button = driver.find_element_by_id('doQuickSearch')
     search_button.send_keys(Keys.ENTER)
+
+def scrape_job_page(driver):
+    """Scrape a page of jobs from Monster.
+
+    We will grab everything that we can (or is relevant) for each 
+    of the jobs posted for a given page. This will include the job title, 
+    job location, posting company, and the date posted. Lastly, we will 
+    click the job posting link itself and grab the text from that URL/page. 
+
+    Args: 
+        driver: Selenium webdriver
+    """
+
+    jobs = driver.find_elements_by_class_name('js_result_row')
+    for job in jobs: 
+        scrape_job(job, driver)
+
+def scrape_job(job, driver): 
+    pass
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location 
