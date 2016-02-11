@@ -21,6 +21,8 @@ def store_in_mongo(lst_of_dcts, db_name, collection_name, key=None):
         else: 
             collection.insert_many(lst_of_dcts)
 
+    client.close()
+
 def store_in_mongo_by_key(lst_of_dcts, mongo_client, key):
     '''
     Input: List, String, List
