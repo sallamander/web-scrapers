@@ -70,6 +70,7 @@ def scrape_job(job, driver):
     time = job.find_element_by_xpath(
         "//time[@itemprop='datePosted']").text
     
+    job_href = job.find_element_by_tag_name('a').get_attribute('href')
     
     
 if __name__ == '__main__':
