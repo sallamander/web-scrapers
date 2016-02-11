@@ -47,8 +47,31 @@ def scrape_job_page(driver):
         scrape_job(job, driver)
 
 def scrape_job(job, driver): 
-    pass
+    """Scrape an individual job posting from a jobs page on Monster. 
 
+    We will grab everything that we can (or is relevant) for each 
+    the inputted job posted on a one of the jobs pages from our search. 
+    This will include the job title, job location, posting company, and 
+    the date posted. Lastly, we will click the job posting link itself 
+    and grab the text from that URL/page (we'll use the webdriver to 
+    do this). 
+
+    Args: 
+        job: Selenium WebElement (holds a job posting)
+        driver: Selenium webdriver.
+    """
+    
+    job_title = job.find_element_by_xpath(
+            "//span[@itemprop='title']").text
+    job_location = job.find_element_by_xpath(
+        "//div[@itemprop='jobLocation']").text
+    posting_company = job.find_element_by_xpath(
+        "//span[@itemprop='name']").text
+    time = job.find_element_by_xpath(
+        "//time[@itemprop='datePosted']").text
+    
+    
+    
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location 
     # will be passed in, so I'll attempt to get both of those within
@@ -57,7 +80,8 @@ if __name__ == '__main__':
         job_title = ' '.join(sys.argv[1].split())
         job_location = ' '.join(sys.argv[2].split())
     except IndexError: 
-        raise Exception('Program needs a job title, job location, and radius inputted!')
+        raise Exception('Program needs a job title and job location inputted!')
 
     driver = webdriver.Firefox() 
     issue_query(driver, job_title, job_location)
+    scrape_job_page(driver)
