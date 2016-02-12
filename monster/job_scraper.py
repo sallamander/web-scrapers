@@ -1,6 +1,8 @@
 import sys
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from general_utilities.storage_utilities import store_in_mongo
+from request_threading import RequestInfoThread 
 
 def issue_query(driver, job_title, job_location): 
     """Instantiate and issue query on selenium webdriver. 
@@ -43,36 +45,18 @@ def scrape_job_page(driver):
     """
 
     jobs = driver.find_elements_by_class_name('js_result_row')
+    threads = []
+    mongo_update_lst = []
     for job in jobs: 
-        scrape_job(job, driver)
+        thread = RequestInfoThread(job, job_title, job_location)
+        thread.start()
+        threads.append(thread)
+    for thread in threads: 
+        thread.join()
+        mongo_update_lst.append(thread.json_dct)
 
-def scrape_job(job, driver): 
-    """Scrape an individual job posting from a jobs page on Monster. 
+    store_in_mongo(mongo_update_lst, 'job_postings', 'monster')
 
-    We will grab everything that we can (or is relevant) for each 
-    the inputted job posted on a one of the jobs pages from our search. 
-    This will include the job title, job location, posting company, and 
-    the date posted. Lastly, we will click the job posting link itself 
-    and grab the text from that URL/page (we'll use the webdriver to 
-    do this). 
-
-    Args: 
-        job: Selenium WebElement (holds a job posting)
-        driver: Selenium webdriver.
-    """
-    
-    job_title = job.find_element_by_xpath(
-            "//span[@itemprop='title']").text
-    job_location = job.find_element_by_xpath(
-        "//div[@itemprop='jobLocation']").text
-    posting_company = job.find_element_by_xpath(
-        "//span[@itemprop='name']").text
-    time = job.find_element_by_xpath(
-        "//time[@itemprop='datePosted']").text
-    
-    job_href = job.find_element_by_tag_name('a').get_attribute('href')
-    
-    
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location 
     # will be passed in, so I'll attempt to get both of those within
