@@ -51,7 +51,43 @@ class RequestInfoThread(Thread):
         
         href = self.job.find_element_by_tag_name('a').get_attribute('href')
         json_dct['href'] = href
-        
+        json_dct['posting_txt'] = self._query_href(href)
+
         return json_dct
 
+    def _query_href(self, href): 
+        """Grab the text from the href. 
 
+        Now we want to actually follow the href that is given in the 
+        job posting, and grab the posting text from there. 
+
+        Args: 
+            href: String of the href to the job posting. 
+        """
+        try:
+            html = get(href)
+            soup = BeautifulSoup(html.content, 'html.parser')
+
+            texts = soup.findAll(text=True)
+            visible_texts = filter(self._visible, texts)
+        except Exception as e: 
+            print e 
+            visible_texts = ['SSLError', 'happened']
+
+        return ' '.join(visible_texts)
+
+    def _visible(self, element): 
+        """If the element is of the type we want to keep, return True. 
+
+        We want to filter out certain elements from the text that we will 
+        get back. We only want to keep text that is visible on the web page, 
+        and we'll use this function to do this. 
+
+        Args: 
+            element: String element to keep in or filter out. 
+        """
+        if element.parent.name in ['style', '[document]', 'head', 'title']:
+            return False
+        elif re.match('<!--.*-->', element):
+            return False
+        return True
