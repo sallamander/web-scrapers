@@ -1,7 +1,11 @@
 import sys
+import os
+wd = os.path.abspath('.')
+sys.path.append(wd + '/../')
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from general_utilities.storage_utilities import store_in_mongo
+from general_utilities.query_utilities import get_html
 from request_threading import RequestInfoThread 
 
 def issue_query(driver, job_title, job_location): 
@@ -32,7 +36,7 @@ def issue_query(driver, job_title, job_location):
     search_button = driver.find_element_by_id('doQuickSearch')
     search_button.send_keys(Keys.ENTER)
 
-def scrape_job_page(driver):
+def scrape_job_page(driver, job_title, job_location):
     """Scrape a page of jobs from Monster.
 
     We will grab everything that we can (or is relevant) for each 
@@ -42,20 +46,60 @@ def scrape_job_page(driver):
 
     Args: 
         driver: Selenium webdriver
+        job_title: str
+        job_location: str
     """
 
-    jobs = driver.find_elements_by_class_name('js_result_row')
-    threads = []
-    mongo_update_lst = []
-    for job in jobs: 
-        thread = RequestInfoThread(job, job_title, job_location)
+    titles, locations, companies, times, hrefs = query_for_data()
+
+
+    current_date = datetime.date.today().strftime("%m-%d-%Y")
+    json_dct = {'search_title': job_title, \
+            'search_location': job_location, \
+            'search_date': current_date}
+
+    thread_lst = []
+    for href in hrefs: 
+        thread = RequestInfoThread(href)
+        thread_lst.append(thread)
         thread.start()
-        threads.append(thread)
-    for thread in threads: 
-        thread.join()
-        mongo_update_lst.append(thread.json_dct)
+    mongo_update_lst = []
+    for title, location, company, time, threads in \
+            izip(titles, locations, companies, times, threads): 
+        mongo_dct = gen_output(json_dct.copy(), title, location, 
+                company, time, thread)
+        mongo_update_lst.append(mongo_dct)
 
     store_in_mongo(mongo_update_lst, 'job_postings', 'monster')
+
+def query_for_data(): 
+    """Grab all relevant data on a jobs page. 
+
+    For each page of jobs, we will utlimately want to grab each of the 
+    jobs title, location, posting companies, and dates posted. Finally, 
+    we'll want to grab the href of the job posting, and use that to get 
+    the job posting text. In this function, we'll just grab all of the 
+    titles, all of the locations, all of the posting companies, all of 
+    the times, and all of the hrefs at once. We'll return those and 
+    then work on actually grabbing the text from them. 
+    """
+
+    job_titles = driver.find_elements_by_xpath(
+            "//span[@itemprop='title']")
+    job_locations = driver.find_elements_by_xpath(
+        "//div[@itemprop='jobLocation']")
+    posting_companies = driver.find_elements_by_xpath(
+        "//span[@itemprop='name']")
+    time = driver.find_elements_by_xpath(
+        "//time[@itemprop='datePosted']")
+    hrefs = driver.find_elements_by_xpath("//div//article//div//h2//a")
+
+    return job_titles, job_locations, posting_companies, time, hrefs
+
+def gen_output(json_dct, title, location, company, time, thread): 
+    """
+    """
+    pass
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location 
@@ -69,4 +113,4 @@ if __name__ == '__main__':
 
     driver = webdriver.Firefox() 
     issue_query(driver, job_title, job_location)
-    scrape_job_page(driver)
+    jobs = scrape_job_page(driver, job_title, job_location)
