@@ -124,6 +124,19 @@ def gen_output(json_dct, title, location, company, date, thread):
 
     return json_dct
 
+def check_if_next(driver): 
+    """Check if there is a next page of job results to grab. 
+
+    Here, we'll grab the clickable job links on the bottom of 
+    the page, and check if one of those reads 'Next', at which 
+    point we can click it. Otherwise, we'll just return `False` 
+    so that we can stop grabbing results from Monster. 
+
+    Args: 
+        driver: Selenium webdriver
+    """
+    pass
+
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location 
     # will be passed in, so I'll attempt to get both of those within
@@ -136,4 +149,9 @@ if __name__ == '__main__':
 
     driver = webdriver.Firefox() 
     issue_query(driver, job_title, job_location)
-    jobs = scrape_job_page(driver, job_title, job_location)
+    # This loop will be used to keep clicking the next button after
+    # scraping jobs on that page. 
+    is_next = True
+    while is_next: 
+        scrape_job_page(driver, job_title, job_location)
+        is_next = check_if_next(driver)
