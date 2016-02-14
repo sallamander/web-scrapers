@@ -5,6 +5,8 @@ sys.path.append(wd + '/../')
 import datetime
 from itertools import izip
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from general_utilities.storage_utilities import store_in_mongo
 from general_utilities.query_utilities import get_html
@@ -72,6 +74,7 @@ def scrape_job_page(driver, job_title, job_location):
                 company, date, thread)
         mongo_update_lst.append(mongo_dct)
 
+    print 'storing', len(mongo_update_lst)
     store_in_mongo(mongo_update_lst, 'job_postings', 'monster')
 
 def query_for_data(): 
@@ -135,8 +138,24 @@ def check_if_next(driver):
     Args: 
         driver: Selenium webdriver
     """
-    pass
-
+    
+    page_links = driver.find_elements_by_class_name('page-link')
+    # page_links will now hold a list of all the links. The last 
+    # link in that list will hold 'Next' for the text, if we aren't
+    # on the last page of jobs. 
+    last_link = page_links[-1]
+    if last_link.text == 'Next': 
+        print 'Trying to click'
+        '''
+        WebDriverWait(driver, 30).until(
+                 lambda d: last_link.click())
+        last_link.click()
+        '''
+        last_link.send_keys(Keys.ENTER)
+        return True
+    else: 
+        return False
+        
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location 
     # will be passed in, so I'll attempt to get both of those within
