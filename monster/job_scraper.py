@@ -2,6 +2,8 @@ import sys
 import os
 wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
+import datetime
+from itertools import izip
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from general_utilities.storage_utilities import store_in_mongo
@@ -50,7 +52,7 @@ def scrape_job_page(driver, job_title, job_location):
         job_location: str
     """
 
-    titles, locations, companies, times, hrefs = query_for_data()
+    titles, locations, companies, dates, hrefs = query_for_data()
 
 
     current_date = datetime.date.today().strftime("%m-%d-%Y")
@@ -64,10 +66,10 @@ def scrape_job_page(driver, job_title, job_location):
         thread_lst.append(thread)
         thread.start()
     mongo_update_lst = []
-    for title, location, company, time, threads in \
-            izip(titles, locations, companies, times, threads): 
+    for title, location, company, date, thread in \
+            izip(titles, locations, companies, dates, thread_lst): 
         mongo_dct = gen_output(json_dct.copy(), title, location, 
-                company, time, thread)
+                company, date, thread)
         mongo_update_lst.append(mongo_dct)
 
     store_in_mongo(mongo_update_lst, 'job_postings', 'monster')
@@ -90,16 +92,37 @@ def query_for_data():
         "//div[@itemprop='jobLocation']")
     posting_companies = driver.find_elements_by_xpath(
         "//span[@itemprop='name']")
-    time = driver.find_elements_by_xpath(
+    dates = driver.find_elements_by_xpath(
         "//time[@itemprop='datePosted']")
     hrefs = driver.find_elements_by_xpath("//div//article//div//h2//a")
 
-    return job_titles, job_locations, posting_companies, time, hrefs
+    return job_titles, job_locations, posting_companies, dates, hrefs
 
-def gen_output(json_dct, title, location, company, time, thread): 
+def gen_output(json_dct, title, location, company, date, thread): 
+    """Format the output dictionary that will end up going into Mongo. 
+
+    Basically, here I just want to actually store things in a dictionary 
+    via certain keys. I found this cleaner than putting it in the
+    scrape_job_page function. 
+
+    Args: 
+        json_dct: dict
+        title: Selenium WebElement 
+        location: Selenium WebElement 
+        company: Selenium WebElement
+        date: Selenium WebElement
+        thread: RequestThreadInfo object
     """
-    """
-    pass
+    # Need to make sure that the thread is done first. 
+    thread.join()
+
+    json_dct['job_title'] = title.text
+    json_dct['location'] = location.text
+    json_dct['company'] = company.text
+    json_dct['date'] = date.text
+    json_dct['posting_txt'] = thread.posting_txt
+
+    return json_dct
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location 

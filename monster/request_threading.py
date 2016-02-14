@@ -20,12 +20,12 @@ class RequestInfoThread(Thread):
 
     def __init__(self, href): 
         super(RequestInfoThread, self).__init__()
-        self.href = href
+        self.href = href.get_attribute('href')
 
     def run(self): 
         self.posting_txt = self._query_href()
 
-    def _query_href(self, href): 
+    def _query_href(self): 
         """Grab the text from the href. 
 
         Now we want to actually follow the href that is given in the 
