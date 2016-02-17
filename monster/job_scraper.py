@@ -167,12 +167,9 @@ if __name__ == '__main__':
     num_jobs_txt = driver.find_elements_by_class_name('page-title')[0].text
     num_jobs = parse_num_jobs_txt(num_jobs_txt)
 
-    print num_jobs
-    '''
     # This loop will be used to keep clicking the next button after
     # scraping jobs on that page. 
     is_next = True
     while is_next: 
         scrape_job_page(driver, job_title, job_location)
         is_next = check_if_next(driver)
-    '''
