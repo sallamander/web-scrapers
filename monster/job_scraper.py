@@ -9,36 +9,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from general_utilities.storage_utilities import store_in_mongo
-from general_utilities.query_utilities import get_html
+from general_utilities.query_utilities import get_html, format_query
 from request_threading import RequestInfoThread 
-
-def issue_query(driver, job_title, job_location): 
-    """Instantiate and issue query on selenium webdriver. 
-
-    In order to search Monster, we have to use an actual web 
-    browser in order to click through the pages (they won't just
-    let us pass a page parameter). Here we'll instantiate a webdriver 
-    (brower), and then find the search boxes on monster.com that we
-    need to input a job location and job title into to find jobs.
-
-    Args: 
-        driver: Selenium webdriver
-        job_title: String holding the job title to query for. 
-        job_location: String holding the job location to query for. 
-    """
-
-    driver.get('http://www.monster.com')
-
-    job_title_box = driver.find_element_by_id('mq1')
-    job_location_box = driver.find_element_by_id('where1')
-    
-    # Insert the search times into the boxes.
-    job_title_box.send_keys(job_title)
-    job_location_box.send_keys(job_location)
-
-    # Locate and click the search button.
-    search_button = driver.find_element_by_id('doQuickSearch')
-    search_button.send_keys(Keys.ENTER)
 
 def scrape_job_page(driver, job_title, job_location):
     """Scrape a page of jobs from Monster.
@@ -161,13 +133,20 @@ if __name__ == '__main__':
     # will be passed in, so I'll attempt to get both of those within
     # a try except and throw an error otherwise. 
     try: 
-        job_title = ' '.join(sys.argv[1].split())
-        job_location = ' '.join(sys.argv[2].split())
+        job_title = sys.argv[1].split()
+        job_location = sys.argv[2].split()
     except IndexError: 
         raise Exception('Program needs a job title and job location inputted!')
 
+    base_URL = 'http://jobs.monster.com/search/?'
+    query_parameters = ['q={}'.format('-'.join(job_title)), 
+            '&where={}'.format('-'.join(job_location)), '&sort=dt.rv.di', 
+            '&rad=20']
+
+    query_URL = format_query(base_URL, query_parameters)
+
     driver = webdriver.Firefox() 
-    issue_query(driver, job_title, job_location)
+    driver.get(query_URL)
     # This loop will be used to keep clicking the next button after
     # scraping jobs on that page. 
     is_next = True
