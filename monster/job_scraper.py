@@ -129,19 +129,20 @@ def check_if_next(driver):
         return False
         
 if __name__ == '__main__':
-    # I expect that at the very least a job title and job location 
+    # I expect that at the very least a job title, job location, and radius
     # will be passed in, so I'll attempt to get both of those within
     # a try except and throw an error otherwise. 
     try: 
         job_title = sys.argv[1].split()
         job_location = sys.argv[2].split()
+        radius = sys.argv[3]
     except IndexError: 
-        raise Exception('Program needs a job title and job location inputted!')
+        raise Exception('Program needs a job title, job location, and radius inputted!')
 
     base_URL = 'http://jobs.monster.com/search/?'
     query_parameters = ['q={}'.format('-'.join(job_title)), 
             '&where={}'.format('-'.join(job_location)), '&sort=dt.rv.di', 
-            '&rad=20']
+            '&rad={}'.format(radius)]
 
     query_URL = format_query(base_URL, query_parameters)
 
