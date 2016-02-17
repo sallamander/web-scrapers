@@ -3,6 +3,7 @@ import os
 wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import datetime
+import re
 from itertools import izip
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,6 +12,23 @@ from selenium.webdriver.common.keys import Keys
 from general_utilities.storage_utilities import store_in_mongo
 from general_utilities.query_utilities import get_html, format_query
 from request_threading import RequestInfoThread 
+
+def parse_num_jobs_txt(num_jobs_txt):
+    """Parse the text that holds the number of jobs to get the number.
+
+    This will use a regex to find the number of jobs that match our 
+    search query. There should only be one number in the search query 
+    text, and so it should be fairly easy to find. 
+
+    Args: 
+        num_jobs_txt: String that contains the number of jobs matching
+            the search query. 
+    """
+    regex = re.compile('\d*[,]?\d+[+]*')
+    search_results = re.findall(regex, num_jobs_txt)
+    num_jobs = search_results[0].replace(',', '')
+
+    return num_jobs
 
 def scrape_job_page(driver, job_title, job_location):
     """Scrape a page of jobs from Monster.
@@ -55,8 +73,6 @@ def query_for_data():
     For each page of jobs, we will utlimately want to grab each of the 
     jobs title, location, posting companies, and dates posted. Finally, 
     we'll want to grab the href of the job posting, and use that to get 
-    the job posting text. In this function, we'll just grab all of the 
-    titles, all of the locations, all of the posting companies, all of 
     the times, and all of the hrefs at once. We'll return those and 
     then work on actually grabbing the text from them. 
     """
@@ -148,9 +164,15 @@ if __name__ == '__main__':
 
     driver = webdriver.Firefox() 
     driver.get(query_URL)
+    num_jobs_txt = driver.find_elements_by_class_name('page-title')[0].text
+    num_jobs = parse_num_jobs_txt(num_jobs_txt)
+
+    print num_jobs
+    '''
     # This loop will be used to keep clicking the next button after
     # scraping jobs on that page. 
     is_next = True
     while is_next: 
         scrape_job_page(driver, job_title, job_location)
         is_next = check_if_next(driver)
+    '''
