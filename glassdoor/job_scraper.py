@@ -1,4 +1,7 @@
 import sys
+import re
+import random
+import time
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
@@ -30,6 +33,25 @@ def issue_query(driver, job_title, job_location):
 
     location_search.send_keys(Keys.ENTER)
 
+def parse_num_jobs_txt(num_jobs_txt): 
+    """Parse the text that holds the number of jobs to get the number. 
+
+
+    This will use a regex to find the number of jobs that match our 
+    search query. There should only be two numbers in the search query 
+    text, and so it should be fairly easy to find. 
+
+    Args: 
+        num_jobs_txt: String that contains the number of jobs matching
+            the search query. 
+    """
+
+    regex = re.compile('\d*[,]?\d+[+]*')
+    search_results = re.findall(regex, num_jobs_txt)
+    num_jobs = search_results[0].replace(',', '')
+
+    return num_jobs
+
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
     # will be passed in, so I'll attempt to get both of those within
@@ -39,10 +61,20 @@ if __name__ == '__main__':
         job_location = sys.argv[2]
     except IndexError: 
         raise Exception('Program needs a job title and job location inputted!')
-
+    
+    # Navigate to the base URL. 
     base_URL = 'https://www.glassdoor.com/index.htm'
     driver = webdriver.Firefox()
     driver.get(base_URL)
-    driver.implicitly_wait(10)
+
+    # Wait for everything to render, and then perform the job search. 
+    time.sleep(random.randint(7, 15))
     issue_query(driver, job_title, job_location)
 
+    # Find the text holding the number of jobs, and parse it. 
+    time.sleep(random.randint(7, 15))
+    headers = driver.find_elements_by_xpath('//header')
+    num_jobs_txt = headers[1].text
+    num_jobs = parse_num_jobs_txt(num_jobs_txt) 
+
+    driver.close()
