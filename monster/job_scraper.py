@@ -6,11 +6,10 @@ import datetime
 import re
 from itertools import izip
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from general_utilities.storage_utilities import store_in_mongo
 from general_utilities.query_utilities import get_html, format_query
+from general_utilities.navigation_utilities import issue_driver_query
 from request_threading import RequestInfoThread 
 
 def parse_num_jobs_txt(num_jobs_txt):
@@ -133,12 +132,6 @@ def check_if_next(driver):
     # on the last page of jobs. 
     last_link = page_links[-1]
     if last_link.text == 'Next': 
-        print 'Trying to click'
-        '''
-        WebDriverWait(driver, 30).until(
-                 lambda d: last_link.click())
-        last_link.click()
-        '''
         last_link.send_keys(Keys.ENTER)
         return True
     else: 
@@ -161,12 +154,11 @@ if __name__ == '__main__':
             '&rad={}'.format(radius)]
 
     query_URL = format_query(base_URL, query_parameters)
+    driver = issue_driver_query(query_URL)
 
-    driver = webdriver.Firefox() 
-    driver.get(query_URL)
     num_jobs_txt = driver.find_elements_by_class_name('page-title')[0].text
     num_jobs = parse_num_jobs_txt(num_jobs_txt)
-
+    
     # This loop will be used to keep clicking the next button after
     # scraping jobs on that page. 
     is_next = True
