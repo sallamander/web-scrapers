@@ -37,8 +37,8 @@ def parse_num_jobs_txt(num_jobs_txt):
 
 
     This will use a regex to find the number of jobs that match our 
-    search query. There should only be two numbers in the search query 
-    text, and so it should be fairly easy to find. 
+    search query. There should only be two numbers in the num_jobs_txt, 
+    and so it should be fairly easy to find. 
 
     Args: 
         num_jobs_txt: String that contains the number of jobs matching
