@@ -1,30 +1,30 @@
 import sys
+import os
+wd = os.path.abspath('.')
+sys.path.append(wd + '/../')
 import time
 import random
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+import re
+from general_utilities.navigation_utilities import issue_driver_query
 
-def issue_query(driver, job_title, job_location): 
-    """Issue the initial job search query so we can start scraping. 
+def parse_num_jobs_txt(num_jobs_txt): 
+    """Parse the text that holds the number of jobs to get the number. 
 
-    Here, we'll search for the input boxes through which we need to 
-    input a job title and job location. We'll input a job title and job
-    location, and then hit the enter button to perform the search.
+
+    This will use a regex to find the number of jobs that match our 
+    search query. There should only be one number in the num_jobs_txt, 
+    and so it should be fairly easy to find. 
 
     Args: 
-        driver: Selenium webdriver
-        job_title: str
-            A string holding the job title we're using in the search. 
-        job_location: str
-            A string holding the job location we're using in the search.
+        num_jobs_txt: String that contains the number of jobs matching
+            the search query. 
     """
 
-    title_search = driver.find_element_by_id('search-key')
-    location_search = driver.find_element_by_id('search-loc')
+    regex = re.compile('\d*[,]?\d+[+]*')
+    search_results = re.findall(regex, num_jobs_txt)
+    num_jobs = search_results[0].replace(',', '')
 
-    title_search.send_keys(job_title)
-    location_search.send_keys(job_location)
-    location_search.send_keys(Keys.ENTER)
+    return num_jobs
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
@@ -36,11 +36,13 @@ if __name__ == '__main__':
     except IndexError: 
         raise Exception('Program needs a job title and job location inputted!')
 
+    
     # Navigate to the base URL
     base_URL = 'http://www.careerbuilder.com/'
-    driver = webdriver.Firefox()
-    driver.get(base_URL)
+    query_params = (('search-key', job_title), ('search-loc', job_location))
+    driver = issue_driver_query(base_URL, query_params)
 
-    # Wait for everything to render, and then perform the job search.
-    time.sleep(random.randint(7, 15))
-    issue_query(driver, job_title, job_location)
+    # Grab num. jobs
+    num_jobs_txt = driver.find_element_by_id('n_pnlJobResultsCount').text
+    num_jobs = parse_num_jobs_txt(num_jobs_txt) 
+    print num_jobs
