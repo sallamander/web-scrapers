@@ -1,11 +1,13 @@
 import sys
+import os
+wd = os.path.abspath('.')
+sys.path.append(wd + '/../')
 import re
 import random
 import time
 from selenium import webdriver
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select
+from general_utilities.navigation_utilities import issue_driver_query
 
 def issue_query(driver, job_title, job_location): 
     """Issue the initial job search query so we can start scraping.
@@ -81,21 +83,20 @@ if __name__ == '__main__':
     except IndexError: 
         raise Exception('Program needs a job title and job location inputted!')
     
-    # Navigate to the base URL. 
+    # Issue the job query. 
     base_URL = 'https://www.glassdoor.com/index.htm'
-    driver = webdriver.Firefox()
-    driver.get(base_URL)
-
-    # Wait for everything to render, and then perform the job search. 
-    time.sleep(random.randint(7, 15))
-    issue_query(driver, job_title, job_location)
+    query_params = (('KeywordSearch', job_title), 
+            ('LocationSearch', job_location))
+    driver = issue_driver_query(base_URL, query_params)
 
     # Find the text holding the number of jobs, and parse it. 
     time.sleep(random.randint(7, 15))
     num_jobs_txt = driver.find_elements_by_xpath('//header')[1].text
     num_jobs = parse_num_jobs_txt(num_jobs_txt) 
+    print num_jobs
     
     # Find the text holding the number of pages in the job search. 
     time.sleep(random.randint(2, 6))
     num_pages_txt = driver.find_element_by_id('ResultsFooter').text
     num_pages = parse_num_pages_txt(num_pages_txt)
+    print num_pages
