@@ -22,7 +22,6 @@ def issue_query(driver, job_title, job_location):
             A string holding the job location we're using in the search. 
     """
 
-
     title_search = driver.find_element_by_id('KeywordSearch')
     location_search = driver.find_element_by_id('LocationSearch')
 
@@ -67,7 +66,7 @@ def parse_num_pages_txt(num_pages_txt):
     """
 
     regex = re.compile('\d*[,]?\d+[+]*')
-    search_results = re.findall(regex, num_jobs_txt)
+    search_results = re.findall(regex, num_pages_txt)
     num_pages = search_results[1].replace(',', '')
 
     return num_pages
