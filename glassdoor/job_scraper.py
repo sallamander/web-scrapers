@@ -12,8 +12,7 @@ def issue_query(driver, job_title, job_location):
 
     Here, we'll search for the input boxes through which we need to input
     a job title and job location. We'll input a job title and job location, 
-    and then hit the enter button to perform the search. After that, we'll
-    make sure to limit the radius of the job search, and sort by date. 
+    and then hit the enter button to perform the search. 
 
     Args: 
         driver: Selenium webdriver
