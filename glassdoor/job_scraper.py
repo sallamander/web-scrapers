@@ -9,6 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from general_utilities.navigation_utilities import issue_driver_query
 from general_utilities.parsing_utilities import parse_num
+from general_utilities.storage_utilities import store_in_mongo
 
 def scrape_job_page(driver, job_title, job_location):
     """Scrape a page of jobs from Glassdoor. 
@@ -30,10 +31,13 @@ def scrape_job_page(driver, job_title, job_location):
             'search_date': current_date}
 
     jobs = driver.find_elements_by_class_name('jobListing')
-    for job in jobs[0:10]: 
-        query_for_data(driver, json_dct, job)
 
-def query_for_data(driver, json_dct, job): 
+    mongo_update_lst = [query_for_data(driver, json_dct, job, idx) for 
+            idx, job in enumerate(jobs)]
+
+    store_in_mongo(mongo_update_lst, 'job_postings', 'glassdoor')
+
+def query_for_data(driver, json_dct, job, idx): 
     """Grab all info. from the job posting
     
     This will include the job title, the job location, the 
@@ -46,7 +50,9 @@ def query_for_data(driver, json_dct, job):
         json_dct: dict 
             Dictionary holding the current information we're storing for 
             that job posting. 
-        job: Selenium element
+        job: Selenium WebElement
+        idx: int
+            Holds the # of the job posting we are on (0 indexed here). 
     """
 
     posting_title = job.find_element_by_class_name('title').text
@@ -54,7 +60,10 @@ def query_for_data(driver, json_dct, job):
             'companyInfo').text.split()
     posting_location = job.find_element_by_xpath(
             "//div//span[@itemprop='jobLocation']").text
-    posting_date = job.find_element_by_class_name('minor').text
+    try: 
+        posting_date = job.find_element_by_class_name('minor').text
+    except: 
+        posting_date = ''
 
     # I couldn't think of any clearly better way to do this. If they have 
     # a number of stars, it comes in the posting companies text. I guess
@@ -71,6 +80,9 @@ def query_for_data(driver, json_dct, job):
         posting_company = ' '.join(split_posting_company)
         out_json_dct = gen_output(json_dct.copy(), posting_title, 
                 posting_location, posting_date, posting_company)
+    
+    out_json_dct['posting_txt'] = grab_posting_txt(driver, job, idx)
+    return out_json_dct
     
 def gen_output(json_dct, *args): 
     """Prep json_dct to be stored in Mongo. 
@@ -91,9 +103,39 @@ def gen_output(json_dct, *args):
     """
     keys_to_add = ('job_title', 'location', 'date', 'company', 'num_stars')
     for arg, key in zip(args, keys_to_add): 
-        json_dct[key] = arg
+        if arg: 
+            json_dct[key] = arg
 
     return json_dct
+
+def grab_posting_txt(driver, job, idx): 
+    """Grab the job posting's actual text. 
+
+    Here well have to click the job posting and then actually grab 
+    it's text. 
+
+    Args: 
+        job: Selenium WebElement
+    """
+
+    job_link = job.find_element_by_class_name('jobLink')
+    job_link.send_keys(Keys.ENTER)
+    job_link.send_keys(Keys.ESCAPE)
+
+    try: 
+        print job.find_element_by_class_name('reviews-tab-link').text
+    except: 
+        pass
+
+    time.sleep(4)
+    texts = driver.find_elements_by_class_name('jobDescriptionContent')
+    return texts[idx].text
+
+def check_if_next(driver): 
+    """
+    """
+    pass
+    
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
@@ -123,6 +165,10 @@ if __name__ == '__main__':
 
     # Find all the jobs. 
     time.sleep(random.randint(6, 12))
-    job_listings = driver.find_elements_by_class_name('jobListing')
 
-    jobs = scrape_job_page(driver, job_title, job_location)
+    # This loop will be used to keep clicking the next button after
+    # scraping jobs on that page. 
+    is_next = True
+    while is_next: 
+        scrape_job_page(driver, job_title, job_location)
+        is_next = check_if_next(driver)
