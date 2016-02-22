@@ -40,6 +40,7 @@ def issue_driver_query(query_URL, query_params=None):
         title_search.clear()
         location_search.clear()
         title_search.send_keys(query_params[0][1])
+        time.sleep(random.randint(3, 5))
         location_search.send_keys(query_params[1][1])
 
         # Execute that query! 
