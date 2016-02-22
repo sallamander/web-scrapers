@@ -21,12 +21,14 @@ def parse_num(input_txt, desired_idx):
     search_results = re.findall(regex, input_txt)
 
     # We don't want the comma in any of our numbers 
-    # (we want 1000 instead of 1,000). I'm not doing any try/except 
-    # stuff either because I want the program to break if this doesn't work.
-    desired_num = search_results[desired_idx].replace(',','')
+    # (we want 1000 instead of 1,000). 
+    if search_results: 
+        desired_num = search_results[desired_idx].replace(',','')
+        return desired_num
+    else: 
+        print 'Empty list returned from parse_num'
+        return []
 
-    return desired_num
-    
 def find_visible_texts(element): 
     """If the element is of the type we want to keep, return True. 
 
