@@ -7,6 +7,16 @@ import random
 from general_utilities.navigation_utilities import issue_driver_query
 from general_utilities.parsing_utilities import parse_num
 
+def scrape_job_page(driver, job_title, job_location): 
+    """
+    """
+    pass
+
+def check_if_next(driver):
+    """
+    """
+    pass
+
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
     # will be passed in, so I'll attempt to get both of those within
@@ -26,3 +36,10 @@ if __name__ == '__main__':
     # Grab num. jobs
     num_jobs_txt = driver.find_element_by_id('n_pnlJobResultsCount').text
     num_jobs = int(parse_num(num_jobs_txt, 0)) 
+
+    # This loop will be used to keep clicking the next button after
+    # scraping jobs on that page. 
+    is_next = True
+    while is_next: 
+        scrape_job_page(driver, job_title, job_location)
+        is_next = check_if_next(driver)
