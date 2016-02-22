@@ -30,7 +30,7 @@ def scrape_job_page(driver, job_title, job_location):
             'search_date': current_date}
 
     jobs = driver.find_elements_by_class_name('jobListing')
-    for job in jobs: 
+    for job in jobs[0:10]: 
         query_for_data(driver, json_dct, job)
 
 def query_for_data(driver, json_dct, job): 
@@ -65,17 +65,35 @@ def query_for_data(driver, json_dct, job):
     if parse_num(' '.join(split_posting_company), 0):
         num_stars = split_posting_company[0]
         posting_company = ' '.join(split_posting_company[1:])
-        gen_output(json_dct, posting_title, posting_location, posting_date,
-                posting_company, num_stars)
+        out_json_dct = gen_output(json_dct.copy(), posting_title, 
+                posting_location, posting_date, posting_company, num_stars)
     else: 
         posting_company = ' '.join(split_posting_company)
-        gen_output(json_dct, posting_title, posting_location, posting_date,
-                posting_company)
-
+        out_json_dct = gen_output(json_dct.copy(), posting_title, 
+                posting_location, posting_date, posting_company)
+    
 def gen_output(json_dct, *args): 
+    """Prep json_dct to be stored in Mongo. 
+
+    Add in all of the *args into the json_dct so that we can store it 
+    in Mongo. I'm expecting that the *args come in a specific order, 
+    given by the tuple of strings below (it'll hold the keys that we 
+    want to use to store these things in the json_dct). Also, the 
+    'num_stars' isn't necessarily expected to be passed in (whereas 
+    everything else is). 
+
+    Args: 
+        json_dct: dict
+            Dictionary that currently stores a couple of things, to be 
+            added to using *args. 
+        *args: Tuple
+            Holds what to add to the json_dct. 
     """
-    """
-    pass
+    keys_to_add = ('job_title', 'location', 'date', 'company', 'num_stars')
+    for arg, key in zip(args, keys_to_add): 
+        json_dct[key] = arg
+
+    return json_dct
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
