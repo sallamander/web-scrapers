@@ -4,6 +4,7 @@ wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import random
 import time
+import datetime
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from general_utilities.navigation_utilities import issue_driver_query
@@ -47,8 +48,35 @@ def query_for_data(driver, json_dct, job):
             that job posting. 
         job: Selenium element
     """
+
+    posting_title = job.find_element_by_class_name('title').text
+    split_posting_company = job.find_element_by_class_name(
+            'companyInfo').text.split()
+    posting_location = job.find_element_by_xpath(
+            "//div//span[@itemprop='jobLocation']").text
+    posting_date = job.find_element_by_class_name('minor').text
+
+    # I couldn't think of any clearly better way to do this. If they have 
+    # a number of stars, it comes in the posting companies text. I guess
+    # I could have done a search and replace, but I'd rather slightly adjust
+    # some functionality I already have (i.e. parse_num) than build another
+    # function to find the number of stars, store it, and then replace it with
+    # empty text. 
+    if parse_num(' '.join(split_posting_company), 0):
+        num_stars = split_posting_company[0]
+        posting_company = ' '.join(split_posting_company[1:])
+        gen_output(json_dct, posting_title, posting_location, posting_date,
+                posting_company, num_stars)
+    else: 
+        posting_company = ' '.join(split_posting_company)
+        gen_output(json_dct, posting_title, posting_location, posting_date,
+                posting_company)
+
+def gen_output(json_dct, *args): 
+    """
+    """
     pass
- 
+
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
     # will be passed in, so I'll attempt to get both of those within
