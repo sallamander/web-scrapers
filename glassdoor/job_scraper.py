@@ -33,7 +33,7 @@ def scrape_job_page(driver, job_title, job_location):
     jobs = driver.find_elements_by_class_name('jobListing')
 
     mongo_update_lst = [query_for_data(driver, json_dct, job, idx) for 
-            idx, job in enumerate(jobs)]
+            idx, job in enumerate(jobs[:-1])]
 
     store_in_mongo(mongo_update_lst, 'job_postings', 'glassdoor')
 
@@ -127,15 +127,54 @@ def grab_posting_txt(driver, job, idx):
     except: 
         pass
 
-    time.sleep(4)
+    time.sleep(random.randint(3, 7))
     texts = driver.find_elements_by_class_name('jobDescriptionContent')
     return texts[idx].text
 
-def check_if_next(driver): 
+def check_if_next(driver, num_pages): 
+    """Check if there is a next page of job results to grab. 
+
+    Here, we'll see if there is another page we can click to. If so, 
+    we'll return `True`, otherwise `False`. 
+
+    Args: 
+        driver: Selenium webdriver 
     """
-    """
-    pass
     
+    try: 
+        next_link = driver.find_element_by_xpath("//li[@class='next']")
+        page_links = driver.find_elements_by_xpath(
+                "//li//span[@class='disabled']")
+        last_page = check_if_last_page(page_links, num_pages)
+        if last_page:  
+            return False
+        time.sleep(random.randint(3, 6))
+        next_link.click()
+        return True
+    except Exception as e:
+        print e
+        return False
+
+def check_if_last_page(page_links, num_pages): 
+    """Parse page links list. 
+
+    Figure out if the page we're on is our last page or not. 
+
+    Args: 
+        page_links: list
+            Holds Selenium WebElements
+        num_pages: int
+    """
+
+    if len(page_links) == 1: 
+        return False
+    else: 
+        elem1_text = page_links[0].text
+        elem2_text = page_links[1].text
+        if elem1_text: 
+            return int(elem1_text) == num_pages
+        elif elem2_text: 
+            return int(elem2_text) == num_pages
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
@@ -170,5 +209,6 @@ if __name__ == '__main__':
     # scraping jobs on that page. 
     is_next = True
     while is_next: 
-        scrape_job_page(driver, job_title, job_location)
-        is_next = check_if_next(driver)
+        jobs = scrape_job_page(driver, job_title, job_location)
+        time.sleep(random.randint(5, 8))
+        is_next = check_if_next(driver, num_pages)
