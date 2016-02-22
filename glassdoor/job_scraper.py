@@ -9,6 +9,21 @@ from selenium.webdriver.common.keys import Keys
 from general_utilities.navigation_utilities import issue_driver_query
 from general_utilities.parsing_utilities import parse_num
 
+def scrape_job_page(driver, job_title, job_location):
+    """Scrape a page of jobs from Glassdoor. 
+
+    Here, we'll grab everything that we can (or is relevant) for each 
+    of the jobs posted for a given page. This will include the job title, 
+    the job location, the posting company, the date posted, and then any 
+    stars assigned (if any).
+
+    Args: 
+        driver: Selenium webdriver
+        job_title: str
+        job_location: str
+    """
+    pass
+
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
     # will be passed in, so I'll attempt to get both of those within
@@ -34,3 +49,10 @@ if __name__ == '__main__':
     time.sleep(random.randint(2, 6))
     num_pages_txt = driver.find_element_by_id('ResultsFooter').text
     num_pages = int(parse_num(num_pages_txt, 1))
+
+    # Find all the jobs. 
+    time.sleep(random.randint(6, 12))
+    job_listings = driver.find_elements_by_class_name('jobListing')
+
+    for page in num_pages: 
+        scrape_job_page(driver, job_title, job_location)
