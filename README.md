@@ -29,7 +29,5 @@ As a last quick note - all of these are built using Python 2. That might be
 worth nothing given the current state of the libraries available in Python 
 2 and 3 for interacting with the web.
 
-Feel free to reach out to sean.sall@galvanize.com if you have any questions, 
-comments, etc. Happy scraping! 
  
 
