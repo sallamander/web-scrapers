@@ -22,8 +22,33 @@ def scrape_job_page(driver, job_title, job_location):
         job_title: str
         job_location: str
     """
-    pass
+    
+    current_date = datetime.date.today().strftime("%m-%d-%Y")
+    json_dct = {'search_title': job_title, \
+            'search_location': job_location, \
+            'search_date': current_date}
 
+    jobs = driver.find_elements_by_class_name('jobListing')
+    for job in jobs: 
+        query_for_data(driver, json_dct, job)
+
+def query_for_data(driver, json_dct, job): 
+    """Grab all info. from the job posting
+    
+    This will include the job title, the job location, the 
+    posting company, the date posted, and then any stars assigned 
+    (if any). We'll also then click and get the job postings 
+    actual text. 
+
+    Args: 
+        driver: Selenium webdriver
+        json_dct: dict 
+            Dictionary holding the current information we're storing for 
+            that job posting. 
+        job: Selenium element
+    """
+    pass
+ 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
     # will be passed in, so I'll attempt to get both of those within
@@ -54,5 +79,4 @@ if __name__ == '__main__':
     time.sleep(random.randint(6, 12))
     job_listings = driver.find_elements_by_class_name('jobListing')
 
-    for page in num_pages: 
-        scrape_job_page(driver, job_title, job_location)
+    jobs = scrape_job_page(driver, job_title, job_location)
