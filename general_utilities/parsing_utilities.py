@@ -27,3 +27,17 @@ def parse_num(input_txt, desired_idx):
 
     return desired_num
     
+def find_visible_texts(element): 
+    """If the element is of the type we want to keep, return True. 
+
+    We want to filter out certain elements from the text that we will 
+    get back. We only want to keep text that is visible on the web page, 
+    and we'll use this function to do this. 
+
+    Args: 
+        element: bs4 Element tag 
+    """
+    if element.parent.name in ['style', '[document]', 'head', 'title']:
+        return False
+    else: 
+        return True

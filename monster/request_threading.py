@@ -8,6 +8,7 @@ from threading import Thread
 from requests import get
 from bs4 import BeautifulSoup
 from general_utilities.query_utilities import get_html
+from general_utilities.parsing_utilities import find_visible_texts
 
 class RequestInfoThread(Thread): 
     """Inherits from Thread so I can store results of my threading. 
@@ -38,25 +39,10 @@ class RequestInfoThread(Thread):
             soup = get_html(self.href)
 
             texts = soup.findAll(text=True)
-            visible_texts = filter(self._visible, texts)
+            visible_texts = filter(find_visible_texts, texts)
         except Exception as e: 
             print e 
             visible_texts = ['SSLError', 'happened']
 
         return ' '.join(visible_texts)
 
-    def _visible(self, element): 
-        """If the element is of the type we want to keep, return True. 
-
-        We want to filter out certain elements from the text that we will 
-        get back. We only want to keep text that is visible on the web page, 
-        and we'll use this function to do this. 
-
-        Args: 
-            element: String element to keep in or filter out. 
-        """
-        if element.parent.name in ['style', '[document]', 'head', 'title']:
-            return False
-        elif re.match('<!--.*-->', element):
-            return False
-        return True

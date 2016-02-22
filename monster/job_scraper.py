@@ -46,7 +46,6 @@ def scrape_job_page(driver, job_title, job_location):
                 company, date, thread)
         mongo_update_lst.append(mongo_dct)
 
-    print 'storing', len(mongo_update_lst)
     store_in_mongo(mongo_update_lst, 'job_postings', 'monster')
 
 def query_for_data(): 
