@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 from general_utilities.query_utilities import get_html
 from general_utilities.parsing_utilities import find_visible_texts
 
-class RequestInfoThread(Thread): 
+class HrefQueryThread(Thread): 
     """Inherits from Thread so I can store results of my threading. 
 
     I want to be able to return something from my threading. This 
@@ -20,7 +20,7 @@ class RequestInfoThread(Thread):
     """
 
     def __init__(self, href): 
-        super(RequestInfoThread, self).__init__()
+        super(HrefQueryThread, self).__init__()
         self.href = href.get_attribute('href')
 
     def run(self): 
