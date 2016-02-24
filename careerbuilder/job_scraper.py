@@ -34,6 +34,18 @@ def scrape_job_page(driver, job_title, job_location):
             'search_date': current_date}
 
     thread_lst = []
+    for href in hrefs: 
+        thread = RequestInfoThread(href)
+        thread_lst.append(thread)
+        thread.start()
+    mongo_update_lst = []
+    for title, location, company, date, thread in \
+            izip(titles, locations, companies, dates, thread_lst): 
+        mongo_dct = gen_output(json_dct.copy(), title, location, 
+                company, date, thread)
+        mongo_update_lst.append(mongo_dct)
+
+    store_in_mongo(mongo_update_lst, 'job_postings', 'careerbuilder')
 
 def query_for_data(): 
     """Grab all the relevant data on a jobs page. 
@@ -52,6 +64,32 @@ def query_for_data():
     hrefs = driver.find_elements_by_xpath("//h2//a")
 
     return job_titles, job_locations, posting_companies, dates, hrefs
+
+def gen_output(json_dct, title, location, company, date, thread): 
+    """Format the output dictionary that will end up going into Mongo. 
+
+    Basically, here I just want to actually store things in a dictionary 
+    via certain keys. I found this cleaner than putting it in the
+    scrape_job_page function. 
+
+    Args: 
+        json_dct: dict
+        title: Selenium WebElement 
+        location: Selenium WebElement 
+        company: Selenium WebElement
+        date: Selenium WebElement
+        thread: RequestThreadInfo object
+    """
+    # Need to make sure that the thread is done first. 
+    thread.join()
+
+    json_dct['job_title'] = title.text
+    json_dct['location'] = location.text
+    json_dct['company'] = company.text
+    json_dct['date'] = date.text
+    json_dct['posting_txt'] = thread.posting_txt
+
+    return json_dct
     
 def check_if_next(driver):
     """
