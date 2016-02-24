@@ -6,6 +6,7 @@ import time
 import random
 import datetime
 from itertools import izip
+from selenium.webdriver.common.keys import Keys
 from general_utilities.navigation_utilities import issue_driver_query
 from general_utilities.parsing_utilities import parse_num
 from general_utilities.storage_utilities import store_in_mongo
@@ -92,9 +93,27 @@ def gen_output(json_dct, title, location, company, date, thread):
     return json_dct
     
 def check_if_next(driver):
+    """Check if there is a next page of job results to grab. 
+
+    Here, we'll grab the clickable job links on the bottom of
+    the page, and check if one of those reads 'Next', at which 
+    point we can click it. Otherwise, we'll just return `False` 
+    so that we can stop grabbing results from CareerBuilder. 
+
+    Args: 
+        driver: Selenium webdriver
     """
-    """
-    return False 
+
+    # If the following class name is not found, then the next button
+    # doesn't exist and it will fail. The except block will then catch
+    # it and return a False (i.e. there is no next page). 
+    try: 
+        last_link = driver.find_element_by_class_name(
+                'JL_MXDLPagination2_next')
+        last_link.send_keys(Keys.ENTER)
+        return True
+    except: 
+        return False
 
 if __name__ == '__main__':
     # I expect that at the very least a job title and job location
