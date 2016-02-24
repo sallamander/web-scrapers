@@ -16,9 +16,13 @@ def store_in_mongo(lst_of_dcts, db_name, collection_name, key=None):
     if key is not None: 
         store_in_mongo_by_key(lst_of_dcts, collection, key)
     else: 
+        # Check if the length is one, in which case we need to use 
+        # insert_one. Otherwise, make sure that it's not empty (i.e. 
+        # the `elif` statement) below, and then insert many. If it's 
+        # empty, then just don't do anything and close the client. 
         if len(lst_of_dcts) == 1: 
             collection.insert_one(lst_of_dcts[0])
-        else: 
+        elif lst_of_dcts: 
             collection.insert_many(lst_of_dcts)
 
     client.close()
