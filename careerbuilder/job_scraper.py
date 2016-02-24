@@ -141,3 +141,4 @@ if __name__ == '__main__':
     while is_next: 
         jobs = scrape_job_page(driver, job_title, job_location)
         is_next = check_if_next(driver)
+    driver.close()

@@ -212,3 +212,4 @@ if __name__ == '__main__':
         jobs = scrape_job_page(driver, job_title, job_location)
         time.sleep(random.randint(5, 8))
         is_next = check_if_next(driver, num_pages)
+    driver.close()
