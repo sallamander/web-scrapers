@@ -5,8 +5,11 @@ sys.path.append(wd + '/../')
 import time
 import random
 import datetime
+from itertools import izip
 from general_utilities.navigation_utilities import issue_driver_query
 from general_utilities.parsing_utilities import parse_num
+from general_utilities.storage_utilities import store_in_mongo
+from request_threading import RequestInfoThread 
 
 def scrape_job_page(driver, job_title, job_location): 
     """Scape a page of jobs from CareerBuilder.
@@ -30,8 +33,7 @@ def scrape_job_page(driver, job_title, job_location):
             'search_location': job_location, \
             'search_date': current_date}
 
-    jobs = driver.find_elements_by_class_name('gs-job-result-abstract')
-    return jobs
+    thread_lst = []
 
 def query_for_data(): 
     """Grab all the relevant data on a jobs page. 
@@ -41,7 +43,15 @@ def query_for_data():
     we'll want to grab the href of the job posting, and use that to get 
     the all of the jobs posting. 
     """
-    pass
+    job_titles = driver.find_elements_by_class_name('prefTitle')
+    posting_companies = driver.find_elements_by_xpath(
+            "//td[@itemprop='hiringOrganization']")
+    job_locations = driver.find_elements_by_xpath(
+            "//div[@itemprop='jobLocation']") 
+    dates = driver.find_elements_by_xpath("//span[@class='time_posted']") 
+    hrefs = driver.find_elements_by_xpath("//h2//a")
+
+    return job_titles, job_locations, posting_companies, dates, hrefs
     
 def check_if_next(driver):
     """
