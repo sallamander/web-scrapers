@@ -50,15 +50,15 @@ if __name__ == '__main__':
     # will be passed in, so I'll attempt to get both of those within
     # a try except and throw an error otherwise. 
     try: 
-        job_title = sys.argv[1].split()
-        job_location = sys.argv[2].split()
+        job_title = sys.argv[1]
+        job_location = sys.argv[2]
         radius = sys.argv[3]
     except IndexError: 
         raise Exception('Program needs a job title, job location, and radius inputted!')
 
     base_URL = 'https://www.ziprecruiter.com/candidate/search?'
-    query_parameters = ['search={}'.format('+'.join(job_title)),
-            '&location={}'.format('+'.join(job_location)), 
+    query_parameters = ['search={}'.format('+'.join(job_title.split())),
+            '&location={}'.format('+'.join(job_location.split())), 
             '&radius={}'.format(radius), '&days=5', 
             '&include_near_duplicates=1']
 

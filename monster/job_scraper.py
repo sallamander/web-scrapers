@@ -124,15 +124,15 @@ if __name__ == '__main__':
     # will be passed in, so I'll attempt to get both of those within
     # a try except and throw an error otherwise. 
     try: 
-        job_title = sys.argv[1].split()
-        job_location = sys.argv[2].split()
+        job_title = sys.argv[1]
+        job_location = sys.argv[2]
         radius = sys.argv[3]
     except IndexError: 
         raise Exception('Program needs a job title, job location, and radius inputted!')
 
     base_URL = 'http://jobs.monster.com/search/?'
-    query_parameters = ['q={}'.format('-'.join(job_title)), 
-            '&where={}'.format('-'.join(job_location)), '&sort=dt.rv.di', 
+    query_parameters = ['q={}'.format('-'.join(job_title.split())), 
+            '&where={}'.format('-'.join(job_location.split())), '&sort=dt.rv.di', 
             '&rad={}'.format(radius)]
 
     query_URL = format_query(base_URL, query_parameters)
