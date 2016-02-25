@@ -3,6 +3,7 @@ import os
 wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import multiprocessing
+import datetime
 from functools import partial
 from general_utilities.query_utilities import get_html, format_query
 from general_utilities.storage_utilities import store_in_mongo
@@ -67,6 +68,10 @@ if __name__ == '__main__':
     html = get_html(query_URL)
     num_jobs_txt = str(html.select('#job_results_headline')[0].text)
     num_jobs = int(parse_num(num_jobs_txt, 0))
+    current_date = datetime.date.today().strftime("%m-%d-%Y")
+    storage_dct = {'job_site': 'ziprecruiter', 'num_jobs': num_jobs, 
+            'date': current_date}
+    store_in_mongo([storage_dct], 'job_numbers', 'ziprecruiter')
     
     # Here we'll cycle through the pages of jobs to grab all of the 
     # info. that we want. Each page holds 20 jobs, so the number of 

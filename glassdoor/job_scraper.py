@@ -196,7 +196,11 @@ if __name__ == '__main__':
     time.sleep(random.randint(7, 15))
     num_jobs_txt = driver.find_elements_by_xpath('//header')[1].text
     num_jobs = int(parse_num(num_jobs_txt, 0)) 
-    
+    current_date = datetime.date.today().strftime("%m-%d-%Y")
+    storage_dct = {'job_site': 'glassdoor', 'num_jobs': num_jobs, 
+            'date': current_date}
+    store_in_mongo([storage_dct], 'job_numbers', 'glassdoor')
+
     # Find the text holding the number of pages in the job search. 
     time.sleep(random.randint(2, 6))
     num_pages_txt = driver.find_element_by_id('ResultsFooter').text

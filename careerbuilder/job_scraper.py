@@ -134,6 +134,10 @@ if __name__ == '__main__':
     # Grab num. jobs
     num_jobs_txt = driver.find_element_by_id('n_pnlJobResultsCount').text
     num_jobs = int(parse_num(num_jobs_txt, 0)) 
+    current_date = datetime.date.today().strftime("%m-%d-%Y")
+    storage_dct = {'job_site': 'careerbuilder', 'num_jobs': num_jobs, 
+            'date': current_date}
+    store_in_mongo([storage_dct], 'job_numbers', 'careerbuilder')
 
     # This loop will be used to keep clicking the next button after
     # scraping jobs on that page. 

@@ -3,6 +3,7 @@ import os
 wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import multiprocessing
+import datetime
 from functools import partial
 from pymongo import MongoClient
 from general_utilities.query_utilities import get_html, format_query
@@ -68,6 +69,10 @@ if __name__ == '__main__':
     html = get_html(query_URL)
     num_jobs_txt = str(html.select('#searchCount'))
     num_jobs = int(parse_num(num_jobs_txt, 2))
+    current_date = datetime.date.today().strftime("%m-%d-%Y")
+    storage_dct = {'job_site': 'indeed', 'num_jobs': num_jobs, 
+            'date': current_date}
+    store_in_mongo([storage_dct], 'job_numbers', 'indeed')
 
     # Now we need to cycle through all of the job postings that we can and 
     # grab the url pointing to it, to then query it. All of the jobs should 
