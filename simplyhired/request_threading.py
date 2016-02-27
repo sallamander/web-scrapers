@@ -43,12 +43,21 @@ class RequestInfoThread(Thread):
         
         json_dct['job_title'] = self.job_result.select('.serp-title')[0].text
 
-        posting_company = self.job_result.find('span', 
+        try: 
+            posting_company = self.job_result.find('span', 
                 {'itemprop': 'name'}).text
-        job_location = self.job_result.find('span', 
+        except: 
+            posting_company = '' 
+        try: 
+            job_location = self.job_result.find('span', 
                 {'itemprop': 'addressLocality'}).text
-        job_region = self.job_result.find('span', 
-                {'itemprop': 'addressRegion'}).text
+        except: 
+            job_location = ''
+        try: 
+            job_region = self.job_result.find('span', 
+                    {'itemprop': 'addressRegion'}).text
+        except: 
+            job_region = '' 
         
         json_dct['company'] = posting_company
         json_dct['location'] = job_location + ',' + job_region
@@ -78,6 +87,7 @@ class RequestInfoThread(Thread):
             texts = soup.findAll(text=True)
             visible_texts = filter(find_visible_texts, texts)
         except Exception as e: 
+            print 'Error in _query_href'
             print e 
             visible_texts = ['SSLError', 'happened']
 
