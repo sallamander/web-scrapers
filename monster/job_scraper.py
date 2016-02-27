@@ -142,7 +142,7 @@ if __name__ == '__main__':
     num_jobs = int(parse_num(num_jobs_txt, 0))
     current_date = datetime.date.today().strftime("%m-%d-%Y")
     storage_dct = {'job_site': 'monster', 'num_jobs': num_jobs, 
-            'date': current_date}
+            'date': current_date, 'title': job_title, 'location': job_location}
     store_in_mongo([storage_dct], 'job_numbers', 'monster')
     
     # This loop will be used to keep clicking the next button after

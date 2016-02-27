@@ -70,7 +70,7 @@ if __name__ == '__main__':
     num_jobs = int(parse_num(num_jobs_txt, 0))
     current_date = datetime.date.today().strftime("%m-%d-%Y")
     storage_dct = {'job_site': 'ziprecruiter', 'num_jobs': num_jobs, 
-            'date': current_date}
+            'date': current_date, 'title': job_title, 'location': job_location}
     store_in_mongo([storage_dct], 'job_numbers', 'ziprecruiter')
     
     # Here we'll cycle through the pages of jobs to grab all of the 
