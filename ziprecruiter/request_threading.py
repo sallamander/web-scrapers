@@ -39,7 +39,7 @@ class RequestInfoThread(Thread):
         current_date = datetime.date.today().strftime('%m-%d-%Y')
         json_dct = {'search_title': self.job_title, \
                 'search_location': self.job_location, \
-                'search_date': current_date}
+                'search_date': current_date, 'job_site': 'ziprecruiter'}
 
         json_dct['job_title'] = self.job_result.select('.job_title')[0].text
 

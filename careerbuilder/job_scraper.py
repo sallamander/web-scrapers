@@ -32,7 +32,7 @@ def scrape_job_page(driver, job_title, job_location):
     current_date = datetime.date.today().strftime("%m-%d-%Y")
     json_dct = {'search_title': job_title, \
             'search_location': job_location, \
-            'search_date': current_date}
+            'search_date': current_date, 'job_site': 'careerbuilder'}
 
     thread_lst = []
     for href in hrefs:  

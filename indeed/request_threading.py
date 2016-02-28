@@ -40,7 +40,7 @@ class RequestInfoThread(Thread):
         current_date = datetime.date.today().strftime("%m-%d-%Y")
         json_dct = {'search_title': self.job_title, \
                 'search_location': self.job_location, \
-                'search_date': current_date}
+                'search_date': current_date, 'job_site': 'indeed'}
         # Holds the actual CSS selector as the key and the label I want to store
         # the info. as as the key. 
         possible_attributes = {'.jobtitle': "job_title", '.company': "company", \
