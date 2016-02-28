@@ -21,7 +21,7 @@ class HrefQueryThread(Thread):
 
     def __init__(self, href): 
         super(HrefQueryThread, self).__init__()
-        self.href = href.get_attribute('href')
+        self.href = href
 
     def run(self): 
         self.posting_txt = self._query_href()

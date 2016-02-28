@@ -43,12 +43,21 @@ class RequestInfoThread(Thread):
 
         json_dct['job_title'] = self.job_result.select('.job_title')[0].text
 
-        posting_company = self.job_result.find('span', 
-                {'itemprop': 'hiringOrganization'}).text
-        job_location = self.job_result.find('span', 
-            {'itemprop': 'addressLocality'}).text
-        job_region = self.job_result.find('span', 
+        try: 
+            posting_company = self.job_result.find('span', 
+                    {'itemprop': 'hiringOrganization'}).text
+        except: 
+            posting_company = ''
+        try: 
+            job_location = self.job_result.find('span', 
+                {'itemprop': 'addressLocality'}).text
+        except: 
+            job_location = ''
+        try: 
+            job_region = self.job_result.find('span', 
                 {'itemprop': 'addressRegion'}).text
+        except: 
+            job_region = ''
         easy_apply = self.job_result.select('.job_apply')
 
         json_dct['company'] = posting_company

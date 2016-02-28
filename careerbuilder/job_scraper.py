@@ -35,8 +35,8 @@ def scrape_job_page(driver, job_title, job_location):
             'search_date': current_date}
 
     thread_lst = []
-    for href in hrefs: 
-        thread = HrefQueryThread(href)
+    for href in hrefs:  
+        thread = HrefQueryThread(href.get_attribute('href'))
         thread_lst.append(thread)
         thread.start()
     mongo_update_lst = []
