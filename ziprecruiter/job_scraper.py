@@ -78,7 +78,7 @@ if __name__ == '__main__':
     # pages we'll cyle through will be num_jobs / 20. The caveat, though
     # is that they only give 20 pages to look through at maximum (hence 
     # the min below). 
-    pages = min(21, num_jobs / 20 + 1)
+    pages = min(20, num_jobs / 20 + 1)
     page_positions = range(1, pages + 1)
     execute_queries = partial(multiprocess_pages, query_URL,
             ' '.join(job_title), ' '.join(job_location))
