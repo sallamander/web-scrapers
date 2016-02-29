@@ -1,3 +1,4 @@
 *.pyc
 *.sh
 /data/*
+/js_proj/*

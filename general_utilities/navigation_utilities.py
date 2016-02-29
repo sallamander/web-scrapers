@@ -1,5 +1,7 @@
 import time 
 import random
+import os
+from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
@@ -24,6 +26,10 @@ def issue_driver_query(query_URL, query_params=None):
             want to search for (in that order), and the second holds the 
             same for the job location. 
     """
+
+    if os.environ['USER'] == 'ubuntu': 
+        display = Display(visible=0, size=(800, 600))
+        display.start()
     
     driver = webdriver.Firefox()
     driver.implicitly_wait(10)
