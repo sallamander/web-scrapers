@@ -42,9 +42,13 @@ def scrape_job_page(driver, job_title, job_location):
     mongo_update_lst = []
     for title, location, company, date, thread in \
             izip(titles, locations, companies, dates, thread_lst): 
-        mongo_dct = gen_output(json_dct.copy(), title, location, 
-                company, date, thread)
-        mongo_update_lst.append(mongo_dct)
+        try: 
+            mongo_dct = gen_output(json_dct.copy(), title, location, 
+                    company, date, thread)
+            mongo_update_lst.append(mongo_dct)
+        except: 
+            print 'Missed element in Monster!'
+
 
     store_in_mongo(mongo_update_lst, 'job_postings', 'monster')
 

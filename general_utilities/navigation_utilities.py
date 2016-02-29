@@ -26,6 +26,7 @@ def issue_driver_query(query_URL, query_params=None):
     """
     
     driver = webdriver.Firefox()
+    driver.implicitly_wait(10)
     driver.get(query_URL)
 
     # Wait for the page to render. 

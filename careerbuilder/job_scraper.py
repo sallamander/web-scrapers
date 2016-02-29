@@ -40,11 +40,14 @@ def scrape_job_page(driver, job_title, job_location):
         thread_lst.append(thread)
         thread.start()
     mongo_update_lst = []
-    for title, location, company, date, thread in \
-            izip(titles, locations, companies, dates, thread_lst): 
-        mongo_dct = gen_output(json_dct.copy(), title, location, 
-                company, date, thread)
-        mongo_update_lst.append(mongo_dct)
+    for title, location, company, date, thread, idx in \
+            izip(titles, locations, companies, dates, thread_lst, range(len(hrefs))): 
+        try: 
+            mongo_dct = gen_output(json_dct.copy(), title, location, 
+                    company, date, thread, idx)
+            mongo_update_lst.append(mongo_dct)
+        except: 
+            print 'Missed element in careerbuilder!'
 
     store_in_mongo(mongo_update_lst, 'job_postings', 'careerbuilder')
 
@@ -56,6 +59,7 @@ def query_for_data():
     we'll want to grab the href of the job posting, and use that to get 
     the all of the jobs posting. 
     """
+
     job_titles = driver.find_elements_by_class_name('prefTitle')
     posting_companies = driver.find_elements_by_xpath(
             "//td[@itemprop='hiringOrganization']")
@@ -66,7 +70,7 @@ def query_for_data():
 
     return job_titles, job_locations, posting_companies, dates, hrefs
 
-def gen_output(json_dct, title, location, company, date, thread): 
+def gen_output(json_dct, title, location, company, date, thread, idx): 
     """Format the output dictionary that will end up going into Mongo. 
 
     Basically, here I just want to actually store things in a dictionary 
@@ -81,6 +85,7 @@ def gen_output(json_dct, title, location, company, date, thread):
         date: Selenium WebElement
         thread: RequestThreadInfo object
     """
+
     # Need to make sure that the thread is done first. 
     thread.join()
 
@@ -88,6 +93,7 @@ def gen_output(json_dct, title, location, company, date, thread):
     json_dct['location'] = location.text
     json_dct['company'] = company.text
     json_dct['date'] = date.text
+
     json_dct['posting_txt'] = thread.posting_txt
 
     return json_dct
