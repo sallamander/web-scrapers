@@ -122,6 +122,24 @@ def check_if_next(driver):
         return True
     else: 
         return False
+
+def get_num_jobs_txt(driver): 
+    """Get the number of jobs text. 
+
+    It turns out this acts slightly different on OSX versus Ubuntu, 
+    and this function should alleviate that. The order of the two 
+    elements with 'page-title' is swapped in Ubuntu and OSX, and 
+    as a result the best way to do this is grab both elements text 
+    and concatenate. 
+
+    Args: 
+        driver: Selenium webdriver
+    """
+
+    page_titles = driver.find_elements_by_class_name('page-title')
+    num_jobs_txt = ''.join([page_title.text for page_title in page_titles])
+
+    return num_jobs_txt
         
 if __name__ == '__main__':
     # I expect that at the very least a job title, job location, and radius
@@ -142,7 +160,7 @@ if __name__ == '__main__':
     query_URL = format_query(base_URL, query_parameters)
     driver = issue_driver_query(query_URL)
 
-    num_jobs_txt = driver.find_elements_by_class_name('page-title')[0].text
+    num_jobs_txt = get_num_jobs_txt(driver)
     num_jobs = int(parse_num(num_jobs_txt, 0))
     current_date = datetime.date.today().strftime("%m-%d-%Y")
     storage_dct = {'job_site': 'monster', 'num_jobs': num_jobs, 
