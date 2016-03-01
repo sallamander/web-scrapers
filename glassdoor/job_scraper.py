@@ -203,8 +203,12 @@ if __name__ == '__main__':
 
     # Find the text holding the number of pages in the job search. 
     time.sleep(random.randint(2, 6))
-    num_pages_txt = driver.find_element_by_id('ResultsFooter').text
-    num_pages = int(parse_num(num_pages_txt, 1))
+    try: 
+        num_pages_txt = driver.find_element_by_id('ResultsFooter').text
+        num_pages = int(parse_num(num_pages_txt, 1))
+    except: 
+        print 'No jobs for search {} in {}'.format(job_title, job_location)
+        sys.exit(0)
 
     # Find all the jobs. 
     time.sleep(random.randint(6, 12))

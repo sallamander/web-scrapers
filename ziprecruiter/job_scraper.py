@@ -66,8 +66,14 @@ if __name__ == '__main__':
 
     # Get HTML for base query. 
     html = get_html(query_URL)
-    num_jobs_txt = str(html.select('#job_results_headline')[0].text)
-    num_jobs = int(parse_num(num_jobs_txt, 0))
+
+    try: 
+        num_jobs_txt = str(html.select('#job_results_headline')[0].text)
+        num_jobs = int(parse_num(num_jobs_txt, 0))
+    except: 
+        print 'No jobs for search {} in {}'.format(job_title, job_location)
+        sys.exit(0)
+
     current_date = datetime.date.today().strftime("%m-%d-%Y")
     storage_dct = {'job_site': 'ziprecruiter', 'num_jobs': num_jobs, 
             'date': current_date, 'title': job_title, 'location': job_location}

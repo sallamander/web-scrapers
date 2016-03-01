@@ -142,8 +142,13 @@ if __name__ == '__main__':
     driver = issue_driver_query(base_URL, query_params)
 
     # Grab num. jobs
-    num_jobs_txt = driver.find_element_by_id('n_pnlJobResultsCount').text
-    num_jobs = int(parse_num(num_jobs_txt, 0)) 
+    try: 
+        num_jobs_txt = driver.find_element_by_id('n_pnlJobResultsCount').text
+        num_jobs = int(parse_num(num_jobs_txt, 0)) 
+    except: 
+        print 'No jobs for search {} in {}'.format(job_title, job_location)
+        sys.exit(0)
+
     current_date = datetime.date.today().strftime("%m-%d-%Y")
     storage_dct = {'job_site': 'careerbuilder', 'num_jobs': num_jobs, 
             'date': current_date, 'title': job_title, 'location': job_location}

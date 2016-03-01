@@ -163,9 +163,14 @@ if __name__ == '__main__':
 
     query_URL = format_query(base_URL, query_parameters)
     driver = issue_driver_query(query_URL)
+    
+    try: 
+        num_jobs_txt = get_num_jobs_txt(driver)
+        num_jobs = int(parse_num(num_jobs_txt, 0))
+    except: 
+        print 'No jobs for search {} in {}'.format(job_title, job_location)
+        sys.exit(0)
 
-    num_jobs_txt = get_num_jobs_txt(driver)
-    num_jobs = int(parse_num(num_jobs_txt, 0))
     current_date = datetime.date.today().strftime("%m-%d-%Y")
     storage_dct = {'job_site': 'monster', 'num_jobs': num_jobs, 
             'date': current_date, 'title': job_title, 'location': job_location}
