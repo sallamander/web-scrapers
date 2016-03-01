@@ -52,15 +52,15 @@ if __name__ == '__main__':
     # will be passed in, so I'll attempt to get both of those within
     # a try except and throw an error otherwise. 
     try: 
-        job_title = sys.argv[1].split()
-        job_location = sys.argv[2].split()
+        job_title = sys.argv[1]
+        job_location = sys.argv[2]
         radius = sys.argv[3]
     except IndexError: 
         raise Exception('Program needs a job title, job location, and radius inputted!')
 
     base_URL = 'https://www.indeed.com/jobs?'
-    query_parameters = ['q={}'.format('+'.join(job_title)),
-            '&l={}'.format('+'.join(job_location)), '&radius={}'.format(radius), 
+    query_parameters = ['q={}'.format('+'.join(job_title.split())),
+            '&l={}'.format('+'.join(job_location.split())), '&radius={}'.format(radius), 
             '&sort=date', '&fromage=5']
 
     query_URL = format_query(base_URL, query_parameters)
@@ -82,6 +82,6 @@ if __name__ == '__main__':
     # I'll need to be able to pass an iterable to the multiprocessing pool. 
     start_positions = range(0, max_start_position, 10)
     execute_queries = partial(multiprocess_pages, query_URL, \
-            ' '.join(job_title), ' '.join(job_location))
+            job_title, job_location)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(execute_queries, start_positions)

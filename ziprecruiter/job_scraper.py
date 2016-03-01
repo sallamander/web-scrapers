@@ -43,7 +43,7 @@ def multiprocess_pages(base_URL, job_title, job_location, page_num):
         thread.join()
         mongo_update_lst.append(thread.json_dct)
 
-    store_in_mongo(mongo_update_lst, 'job_postings', 'zip_recruiter')
+    store_in_mongo(mongo_update_lst, 'job_postings', 'ziprecruiter')
     
 if __name__ == '__main__': 
     # I expect that at the very least a job title, job location, and radius
@@ -81,6 +81,6 @@ if __name__ == '__main__':
     pages = min(20, num_jobs / 20 + 1)
     page_positions = range(1, pages + 1)
     execute_queries = partial(multiprocess_pages, query_URL,
-            ' '.join(job_title), ' '.join(job_location))
+            job_title, job_location)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(execute_queries, page_positions)
