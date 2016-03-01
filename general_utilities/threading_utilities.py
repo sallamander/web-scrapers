@@ -24,7 +24,10 @@ class HrefQueryThread(Thread):
         self.href = href
 
     def run(self): 
-        self.posting_txt = self._query_href()
+        if self.href: 
+            self.posting_txt = self._query_href()
+        else: 
+            self.posting_txt = ''
 
     def _query_href(self): 
         """Grab the text from the href. 
