@@ -34,6 +34,13 @@ def issue_driver_query(query_URL, query_params=None):
     driver = webdriver.Firefox()
     driver.implicitly_wait(10)
     driver.get(query_URL)
+    time.sleep(3)
+
+    while 'beta' in driver.current_url: 
+        driver.close()
+        driver = webdriver.Firefox()
+        driver.implicitly_wait(10)
+        driver.get(query_URL)
 
     # Wait for the page to render. 
     time.sleep(random.randint(7, 15))
