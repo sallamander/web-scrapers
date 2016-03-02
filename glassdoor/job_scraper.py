@@ -5,6 +5,7 @@ sys.path.append(wd + '/../')
 import random
 import time
 import datetime
+import pytz
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from general_utilities.navigation_utilities import issue_driver_query
@@ -25,7 +26,7 @@ def scrape_job_page(driver, job_title, job_location):
         job_location: str
     """
     
-    current_date = datetime.date.today().strftime("%m-%d-%Y")
+    current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
     json_dct = {'search_title': job_title, \
             'search_location': job_location, \
             'search_date': current_date, 'job_site': 'glassdoor'}
@@ -196,7 +197,8 @@ if __name__ == '__main__':
     time.sleep(random.randint(7, 15))
     num_jobs_txt = driver.find_elements_by_xpath('//header')[1].text
     num_jobs = int(parse_num(num_jobs_txt, 0)) 
-    current_date = datetime.date.today().strftime("%m-%d-%Y")
+
+    current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
     storage_dct = {'job_site': 'glassdoor', 'num_jobs': num_jobs, 
             'date': current_date, 'title': job_title, 'location': job_location}
     store_in_mongo([storage_dct], 'job_numbers', 'glassdoor')

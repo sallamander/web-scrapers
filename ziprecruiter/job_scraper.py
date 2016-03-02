@@ -4,6 +4,7 @@ wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import multiprocessing
 import datetime
+import pytz
 from functools import partial
 from general_utilities.query_utilities import get_html, format_query
 from general_utilities.storage_utilities import store_in_mongo
@@ -74,7 +75,7 @@ if __name__ == '__main__':
         print 'No jobs for search {} in {}'.format(job_title, job_location)
         sys.exit(0)
 
-    current_date = datetime.date.today().strftime("%m-%d-%Y")
+    current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
     storage_dct = {'job_site': 'ziprecruiter', 'num_jobs': num_jobs, 
             'date': current_date, 'title': job_title, 'location': job_location}
     store_in_mongo([storage_dct], 'job_numbers', 'ziprecruiter')

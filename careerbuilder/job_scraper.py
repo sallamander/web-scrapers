@@ -5,6 +5,7 @@ sys.path.append(wd + '/../')
 import time
 import random
 import datetime
+import pytz
 from itertools import izip
 from selenium.webdriver.common.keys import Keys
 from general_utilities.navigation_utilities import issue_driver_query
@@ -29,7 +30,7 @@ def scrape_job_page(driver, job_title, job_location):
 
     titles, locations, companies, dates, hrefs = query_for_data()
 
-    current_date = datetime.date.today().strftime("%m-%d-%Y")
+    current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
     json_dct = {'search_title': job_title, \
             'search_location': job_location, \
             'search_date': current_date, 'job_site': 'careerbuilder'}
@@ -149,7 +150,7 @@ if __name__ == '__main__':
         print 'No jobs for search {} in {}'.format(job_title, job_location)
         sys.exit(0)
 
-    current_date = datetime.date.today().strftime("%m-%d-%Y")
+    current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
     storage_dct = {'job_site': 'careerbuilder', 'num_jobs': num_jobs, 
             'date': current_date, 'title': job_title, 'location': job_location}
     store_in_mongo([storage_dct], 'job_numbers', 'careerbuilder')

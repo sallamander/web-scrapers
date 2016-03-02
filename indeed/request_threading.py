@@ -3,6 +3,7 @@ import os
 wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import datetime
+import pytz
 import re
 from threading import Thread
 from requests import get
@@ -37,7 +38,7 @@ class RequestInfoThread(Thread):
         text that is there. 
         """
         
-        current_date = datetime.date.today().strftime("%m-%d-%Y")
+        current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
         json_dct = {'search_title': self.job_title, \
                 'search_location': self.job_location, \
                 'search_date': current_date, 'job_site': 'indeed'}
