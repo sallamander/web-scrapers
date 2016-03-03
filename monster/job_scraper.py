@@ -121,8 +121,8 @@ def check_if_next(driver):
     # page_links will now hold a list of all the links. The last 
     # link in that list will hold 'Next' for the text, if we aren't
     # on the last page of jobs. 
-    last_link = page_links[-1]
-    if last_link.text == 'Next': 
+    last_link = page_links[-1] if page_links else None
+    if last_link and last_link.text == 'Next': 
         last_link.send_keys(Keys.ENTER)
         return True
     else: 
