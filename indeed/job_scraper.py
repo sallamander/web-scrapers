@@ -1,3 +1,16 @@
+"""A module for scraping Indeed for jobs. 
+
+This module is the driver for an Indeed scraper. 
+It controls the process of issuing requests, parsing the 
+contents of those requests, and storing the results. It also 
+handles the threading and multiprocessing that is used to 
+speed up the scraping process. 
+
+Usage: 
+
+    python job_scraper.py <job title> <job location> <radius>
+"""
+
 import sys
 import os
 wd = os.path.abspath('.')
@@ -17,19 +30,22 @@ def multiprocess_pages(base_URL, job_title, job_location, page_start):
 
     The Indeed URL used for job searching takes another parameter, 
     `start`, that allows you to start the job search at jobs 10-20, 
-    20-30, etc. I can use this to grab job results from multiple pages at
-    once. This function takes in the base_URL and then adds that
-    start={page_start} parameter to the URL, and then queries it. 
-    It passes the results on to a thread to grab the details from each
-    job posting.
+    20-30, etc. Use this to grab job results from multiple pages at
+    once. This function takes in the base_URL, adds that start={page_start} 
+    parameter to the URL, and then queries it. It passes the results on 
+    to a thread to grab the details from each job posting. It then 
+    grabs the results from each threading object and stores those. 
 
     Args: 
-        base_URL: String that holds the base URL to add the page_start 
-            parameter to. 
-        job_title: String holding the job title used for the search
-        job_location: String holding the job location used for the search 
-        page_start: Integer of what the `start` parameter in the URL should
-            be set to. 
+    ----
+        base_URL: str 
+            Holds the base URL to add the page_start parameter to. 
+        job_title: str 
+            Holds the job title used for the search. 
+        job_location: str 
+            Holds the job location used for the search. 
+        page_start: int 
+            Holds what the `start` parameter in the URL should be set to. 
     """
 
     url = base_URL + '&start=' + str(page_start)

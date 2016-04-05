@@ -1,3 +1,16 @@
+"""A module for scraping Monster for jobs. 
+
+This module is the driver for a Monster scraper. 
+It controls the process of instantiating a Selenium 
+browser to scrape, and controlling that browser throughout
+the entire process. It also handles the Threading, parsing, 
+and storage that takes place. 
+
+Usage: 
+
+    python job_scraper.py <job title> <job location> <radius>
+"""
+
 import sys
 import os
 wd = os.path.abspath('.')
@@ -16,18 +29,22 @@ from general_utilities.threading_utilities import HrefQueryThread
 def scrape_job_page(driver, job_title, job_location):
     """Scrape a page of jobs from Monster.
 
-    We will grab everything that we can (or is relevant) for each 
-    of the jobs posted for a given page. This will include the job title, 
-    job location, posting company, and the date posted. Lastly, we will 
-    click the job posting link itself and grab the text from that URL/page. 
+    Grab everything that is possible (or relevant) for each of the 
+    jobs posted for a given page. This will typically include the job title, 
+    job location, posting company, and the date posted. From the given 
+    href, click the job posting itself and grab the text. Lastly, store
+    all of this in Mongo. 
 
     Args: 
+    ----
         driver: Selenium webdriver
         job_title: str
+            Job title to use in the search query. 
         job_location: str
+            Job locatino to use in the search query. 
     """
 
-    titles, locations, companies, dates, hrefs = query_for_data()
+    titles, locations, companies, dates, hrefs = query_for_data(driver)
 
 
     current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
@@ -57,14 +74,19 @@ def scrape_job_page(driver, job_title, job_location):
 
     store_in_mongo(mongo_update_lst, 'job_postings', 'monster')
 
-def query_for_data(): 
+def query_for_data(driver): 
     """Grab all relevant data on a jobs page. 
 
-    For each page of jobs, we will utlimately want to grab each of the 
-    jobs title, location, posting companies, and dates posted. Finally, 
-    we'll want to grab the href of the job posting, and use that to get 
-    the times, and all of the hrefs at once. We'll return those and 
-    then work on actually grabbing the text from them. 
+    For each page of jobs, grab each of the job titles, locations, 
+    posting companies, dates posted, and hrefs. 
+
+    Return: 
+    ------
+        job_titles: list
+        job_locations: list 
+        posting_companies: list 
+        dates: list
+        hrefs: list 
     """
 
     job_titles = driver.find_elements_by_xpath(
@@ -82,17 +104,16 @@ def query_for_data():
 def gen_output(json_dct, title, location, company, date, thread): 
     """Format the output dictionary that will end up going into Mongo. 
 
-    Basically, here I just want to actually store things in a dictionary 
-    via certain keys. I found this cleaner than putting it in the
-    scrape_job_page function. 
-
     Args: 
+    ----
         json_dct: dict
         title: Selenium WebElement 
         location: Selenium WebElement 
         company: Selenium WebElement
         date: Selenium WebElement
         thread: RequestThreadInfo object
+
+    Return: dct
     """
     # Need to make sure that the thread is done first. 
     thread.join()
@@ -108,13 +129,15 @@ def gen_output(json_dct, title, location, company, date, thread):
 def check_if_next(driver): 
     """Check if there is a next page of job results to grab. 
 
-    Here, we'll grab the clickable job links on the bottom of 
-    the page, and check if one of those reads 'Next', at which 
-    point we can click it. Otherwise, we'll just return `False` 
-    so that we can stop grabbing results from Monster. 
+    Grab the clickable job links on the bottom of the page, and 
+    check if one of those reads 'Next'. If so, click it, and otherwise
+    return `False`. 
 
     Args: 
+    ----
         driver: Selenium webdriver
+
+    Return: bool
     """
     
     page_links = driver.find_elements_by_class_name('page-link')
@@ -138,7 +161,10 @@ def get_num_jobs_txt(driver):
     and concatenate. 
 
     Args: 
+    ----
         driver: Selenium webdriver
+
+    Return: str
     """
 
     page_titles = driver.find_elements_by_class_name('page-title')

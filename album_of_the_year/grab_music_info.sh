@@ -6,8 +6,11 @@ if [ -z $year ]; then
 fi
 
 if [ $year -eq 2015 ]; then 
-    echo "Year is 2015"
+    python albums_of_the_year_lst_ind.py 2015
+    python albums_of_the_year_lst_full.py 2015
+    python end_year_critic_lists.py 
 else
-    echo "Year is not 2015"
+    python albums_of_the_year_lst_ind.py $year
+    python albums_of_the_year_lst_full.py $year
 fi 
 

@@ -1,3 +1,10 @@
+"""A module to use for navigating the JS in webpages. 
+
+This module currently provides a single function 
+(`issue_driver_query`), which opens up a Selenium Browser 
+to help navigate around the JS in our web page searches.
+"""
+
 import time 
 import random
 import os
@@ -6,36 +13,50 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 def issue_driver_query(query_URL, query_params=None):
-    """Issue the initial job search query so we can start scraping.
+    """Issue the initial query in order to start scraping.
 
-    Here, we'll do two things. We'll first just issue a `.get()` request
-    on the `query_URL` - this will either hold the homepage from which 
-    we will need to use the driver program to perform a search, or 
-    will be the query_URL of the final search (we might not need to use 
-    a Selenium Driver). If the former, then we'll use the `query_params` 
-    to grab the search boxes and enter the query parameters. If the latter, 
-    then we're done, and we'll return the Selenium driver. 
+    First, issue a `.get()` request on the `query_URL` - this 
+    will either hold the homepage from which we will need to use the 
+    driver program to perform a search, or will be the query_URL of 
+    the final search (we might not need to use a Selenium Driver to 
+    issue the initial query). If the former, then we'll use the 
+    `query_params` to grab the search boxes and enter the query 
+    parameters. If the latter, then we're done, and we'll return 
+    the Selenium driver. 
+
+    All of the `time.sleep()` calls are used in an attempt to appear 
+    as an actual user (e.g. not a bot). 
 
     Args: 
+    ----
         query_URL: str
             Holds the homepage of the job search, or the URL of the final 
             search (i.e. with the query params concatenated in). 
-        query_params: dictionary (optional)
+        query_params (optional): tuple 
             Holds a tuple of two tuples. The first tuple contains the CSS ID
             selector to find the job title search box and the job title we 
             want to search for (in that order), and the second holds the 
             same for the job location. 
-    """
 
+    Returns: Selenium webdriver
+    """
+    
+    # Useful if we are on an AWS instance. Allows us to run 
+    # Selenium in a headless fashion. 
     if os.environ['USER'] == 'ubuntu': 
         display = Display(visible=0, size=(800, 600))
         display.start()
     
     driver = webdriver.Firefox()
+    # Used to make sure to wait long enough for the page to 
+    # render before searching for an element. 
     driver.implicitly_wait(10)
     driver.get(query_URL)
     time.sleep(3)
 
+    # Monster started using a `beta` version of the site, and the 
+    # Monster scraper is not built for that. Here, we keep issuing 
+    # the query until we get the non-beta version. 
     while 'beta' in driver.current_url: 
         driver.close()
         driver = webdriver.Firefox()

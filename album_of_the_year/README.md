@@ -6,7 +6,7 @@ This scraper is built to grab a number of pieces of information for all of the a
 
 ## Usage
 
-It's mentioned above that there are three pieces of information that are grabbed for all of the albums that are on the `Music Year End List Aggregate` for a user inputted year. These three pieces are all grabbed via three separate python scripts in this folder (the first piece via `albums_of_the_year_lst_ind.py`, the second piece via `albums_of_the_year_lst_full.py`, and the third via `end_year_critic_lists.py`) and then stored in a Mongo database. You can run each of these pieces individually (in order), or you can run the bash script stored in this folder (`grab_music_info.sh`), which will run all three, and take care of only running the third if the year is not 2015 (see above for why).  
+It's mentioned above that there are three pieces of information that are grabbed for all of the albums that are on the `Music Year End List Aggregate` for a user inputted year. These three pieces are all grabbed via three separate python scripts in this folder (the first piece via `albums_of_the_year_lst_full.py`, the second piece via `albums_of_the_year_lst_ind.py`, and the third via `end_year_critic_lists.py`) and then stored in a Mongo database. You can run each of these pieces individually (in order), or you can run the bash script stored in this folder (`grab_music_info.sh`), which will run all three, and take care of only running the third if the year is not 2015 (see above for why).  
 
 No matter how you run it, you have to input a year (except for the `end_year_critic_lists.py` file). If you're running it via the individual scripts themselves, then you would type in the following: 
 

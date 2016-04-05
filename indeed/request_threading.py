@@ -1,3 +1,11 @@
+"""A module for threading requests and storing their results. 
+
+This module currently provides one class - `RequestInfoThread`. 
+It is meant to help issue get requests using threading, but 
+avoid creating a new connection to a db for each thread. It 
+does this by storing the results of the get request as an 
+attribute on the class. 
+"""
 import sys
 import os
 wd = os.path.abspath('.')
@@ -12,12 +20,29 @@ from general_utilities.parsing_utilities import find_visible_texts
 
 
 class RequestInfoThread(Thread): 
-    """Inherits from Thread so I can store results of my threading. 
+    """Threading based class to issue get requests and store the results.  
+    
+    RequestInfoThread issues a get request on the href from an 
+    inputted row (which represents a job), after grabbing all of its
+    relevant information. It then stores the results as an attribute 
+    available for later access. The motivation for using a class 
+    instead of simply passing a function to ThreadPool was to 
+    avoid creating a new connection with the database (here Mongo) 
+    for each get request (this would most likely overwhelm the db 
+    with connections). RequestInfoThread allows for later access of 
+    the results of the get request in order to perform multiple 
+    uploads/updates to the db. 
 
-    I want to be able to return something from my threading. This 
-    class will allow me to do that - perform all of the requesting 
-    and data gathering that I want to do, but store the results on 
-    the class so that I can access them later. 
+
+    Args: 
+    ----
+        row: bs4.BeautifulSoup object.
+            Holds a job, including all of the info. that we want 
+            to parse from it. 
+        job_title: str
+            Holds the job title used in the search query. 
+        job_location: str
+            Holds the job location used in the search query. 
     """
 
     def __init__(self, row, job_title, job_location): 
@@ -30,12 +55,13 @@ class RequestInfoThread(Thread):
         self.json_dct = self._request_info()
 
     def _request_info(self): 
-        """Grab relevant information from the row and store it in mongo.
+        """Grab relevant information from the row.
 
-        Each row will contain a number of features that we will want to 
-        grab. Then, we'll grab its href attribute, which will actually hold 
-        a link to the job posting. We'll query that link and grab all the 
-        text that is there. 
+        Each row will contain a number of features to grab. Grab these, 
+        and then its href attribute. Use that href to actually issue a request
+        for the job posting's text. 
+
+        Return: dct
         """
         
         current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
@@ -62,11 +88,15 @@ class RequestInfoThread(Thread):
     def _query_href(self, href): 
         """Grab the text from the href. 
 
-        Now we want to actually follow the href that is given in the 
-        job posting, and grab the posting text from there. 
+        Follow the href that is given in the job posting, and grab 
+        the posting text from there. 
 
         Args: 
-            href: String of the href to the job posting. 
+        ----
+            href: str 
+                Holds the href to the job posting. 
+
+        Return: str
         """
         try:
             html = get('http://www.indeed.com' + href) if href.startswith('/') \

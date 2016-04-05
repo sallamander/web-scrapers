@@ -1,3 +1,10 @@
+"""A module for grabbing end or year critic list info. 
+
+This module can be used to grab where each album on the 
+End Year Critic List on albumoftheyear.org fell on certain
+Critics lists. 
+"""
+
 import sys
 import os
 wd = os.path.abspath('.')
@@ -10,20 +17,35 @@ from general_utilities.storage_utilities import store_in_mongo
 from albums_of_year_lst_ind import find_score
 
 def grab_critics_info(critics_names, critics_hrefs):
-    '''
-    Input: Dictionary, Dictionary
-    Output: List of Dictionaries 
+    """Pull all relevant information from a critics list page. 
 
-    For each of the critic lists, pull all of the relevant information 
-    from their page. Return the information in a list of dictionary, 
-    where there is one dictionary for each critic list. 
-    '''
+    Access the hrefs to issue get requests on all the critics 
+    list pages, and then cycle through the hrefs and pull all 
+    relevant information from the critics lists. Temporarily 
+    store the information, and then output the final results in 
+    a dictionary, where each key is an album title, and the value
+    is a list of dictionaries (these dictionaries hold critic names
+    and ratings). 
+
+    Args: 
+    ----
+        critics_names: list of strings
+            Holds the names of each of the critics' lists that
+            will be cycled through. 
+        critics_hrefs: list of strings
+            Holds the href attribute pointing to the actual critic
+            list page that holds all relevant information. 
+
+    Return: dct of lists
+    """
 
     critics_hrefs_values = critics_hrefs.values()[0]
 
     json_dct = defaultdict(list)
+
     # Compile this here since we only need to do this once.
     regex = re.compile("^\d+\.")
+
     # Cycle through each one of the critics. 
     for idx, critic_name in enumerate(critics_names.values()[0]): 
         
@@ -36,10 +58,6 @@ def grab_critics_info(critics_names, critics_hrefs):
             post = soup.select('#post-' + str(num_albums_idx))[0]
 
             album_title, album_title_txt = get_album_title(post)            
-            '''
-            critic_score = find_score(post, 'Critic Score') 
-            user_score = find_score(post, 'User Score')
-            '''
 
             rating_text = regex.findall(album_title_txt)
             rating = parse_rating(rating_text, idx2)
@@ -52,14 +70,23 @@ def grab_critics_info(critics_names, critics_hrefs):
     return json_dct 
 
 def get_critic_lst_content(critics_hrefs_values, idx):
-    '''
-    Input: List, Integer
-    Output: List, BeautifulSoup object
+    """Grab the CSS element that holds all relevant info. for a critic list. 
 
     For the critic href at the inputted idx in the critics_hrefs_values, grab
     all of the items with the class '.listLargeTitle'. This will then be used 
     to cycle through each one of them and grab information from them. 
-    '''
+
+    Args: 
+    ----
+        critics_hrefs_values: list of strings 
+            Holds the href attribute for each critic list, and is 
+            used to issue a get request against that href. 
+        idx: int
+            Holds the index of the current critics list that is being 
+            looked at. 
+
+    Return: list, bs4.BeautifulSoup object 
+    """
 
     base_individual_list_url = 'http://www.albumoftheyear.org'
     css_selectors = ['.listLargeTitle']
@@ -76,14 +103,19 @@ def get_critic_lst_content(critics_hrefs_values, idx):
     return critic_lst_content_vals, soup
 
 def get_album_title(post): 
-    '''
-    Input: bs4.element.Tag
-    Output: String, String
+    """Parse the inputted post bs4 tag
 
     Grab the album title from our inputted post. We are returning
     the full text in addition to just the album title because the 
     full text potentially has the rating in it. 
-    '''
+
+    Args: 
+    ----
+        post: bs4.element.Tag
+            Holds all of the information to grab from a critics list. 
+
+    Return: str, str
+    """
 
     album_title_txt = post.select('.listLargeTitle')[0].text
     split_album_title_txt = album_title_txt.split('-')
@@ -98,17 +130,24 @@ def get_album_title(post):
     return album_title, album_title_txt
 
 def parse_rating(rating_txt, idx): 
-    '''
-    Input: String, Integer
-    Output: Integer
+    """Parse the rating text to grab an album's rating. 
 
-    Get the rating for the current album that we are looking at on the critics
-    list. This falls into one of two scenarios: (1). Either the rating is 
-    already in the inputted rating_txt, and we just need to parse it, or (2). 
-    It's not there, and we need to assign it the inputted idx (this why we 
+    Get the rating for the current album on the critics list. This 
+    falls into one of two scenarios: (1). Either the rating is already 
+    in the inputted rating_txt, and we just need to parse it, or (2). 
+    It's not there, and we need to assign it the inputted idx (this is why we 
     reversed the list in the get_critic_lst_content() function - the idx 
     starts from one but the lists starts from the highest ranked (worst album). 
-    '''
+
+    Args: 
+    ----
+        rating_txt: str
+            Text that potentially holds the rating. 
+        idx: int
+            Holds the rating if the text does not. 
+
+    Return: int
+    """
 
     if len(rating_txt) >= 1: 
         rating = int(rating_txt[0].replace('.', ''))
@@ -118,9 +157,7 @@ def parse_rating(rating_txt, idx):
     return rating
 
 def format_output(raw_output): 
-    '''
-    Input: Dictionary
-    Output: List
+    """Format the raw_output to be more readable. 
 
     Reformat the dictionary so that we can easily insert it into our Mongo
     database. Basically, right now the dictionary consists of album titles 
@@ -128,7 +165,13 @@ def format_output(raw_output):
     We need it to be a list of dictionaries in the format: 
     
     {'Album Title': album_title, 'Critics Scores' : critics_scores_lst}
-    '''
+
+    Args: 
+    ----
+        raw_output: dictionary
+
+    Return: list 
+    """
 
     output_lst = [{"Album Title": k, "Critics Scores": v} for \
             k, v in raw_output.iteritems()]

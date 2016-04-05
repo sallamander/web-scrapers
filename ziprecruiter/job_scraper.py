@@ -1,3 +1,16 @@
+"""A module for scraping ZipRecruiter for jobs. 
+
+This module is the driver for a ZipRecruiter scraper. 
+It controls the process of issuing requests, parsing the 
+contents of those requests, and storing the results. It also 
+handles the threading and multiprocessing that is used to 
+speed up the scraping process. 
+
+Usage: 
+
+    python job_scraper.py <job title> <job location> <radius>
+"""
+
 import sys
 import os
 wd = os.path.abspath('.')
@@ -16,19 +29,23 @@ def multiprocess_pages(base_URL, job_title, job_location, page_num):
 
     The ZipRecruiter URL used for job searching takes an additional 
     parameter, `page`, that allows you to start the job search at page 
-    0-20 (20 is the max). I can use this to grab job results from multiple
+    0-20 (20 is the max). Use this to grab job results from multiple
     pages at once. This function here takes in the base_URL, and then 
     adds that page={page_num} parameter to the URL, and then queries it. 
     It passes the results on to a thread to grab the details from each 
-    job posting. 
+    job posting. It then grabs the results from each threading object and
+    stores those. 
 
     Args: 
-        base_URL: String that holds the base URL to add the page_num 
-            parameter to. 
-        job_title: String holding the job title used for the search 
-        job_location: String holding the job location used for the search
-        page_num: Integer of what the `page` paramter in the URL should 
-            be set to. 
+    ----
+        base_URL: str 
+            Holds the base URL to add the page_start parameter to. 
+        job_title: str 
+            Holds the job title used for the search. 
+        job_location: str 
+            Holds the job location used for the search. 
+        page_start: int 
+            Holds what the `start` parameter in the URL should be set to. 
     """
 
     url = query_URL + '&page=' + str(page_num)

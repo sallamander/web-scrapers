@@ -1,3 +1,14 @@
+"""A module for scraping Glassdoor for jobs. 
+
+This module is the driver for a Glassdoor scraper. It
+controls the process of instantiating a Selenium browser to 
+scrape, and controls that browser throughout the entire 
+process. It also handles parsing and storing our results. 
+
+Usage: 
+
+    python job_scraper.py <job title> <job location>
+"""
 import sys
 import os
 wd = os.path.abspath('.')
@@ -15,10 +26,10 @@ from general_utilities.storage_utilities import store_in_mongo
 def scrape_job_page(driver, job_title, job_location):
     """Scrape a page of jobs from Glassdoor. 
 
-    Here, we'll grab everything that we can (or is relevant) for each 
-    of the jobs posted for a given page. This will include the job title, 
-    the job location, the posting company, the date posted, and then any 
-    stars assigned (if any).
+    Grab everything that is possible or relevant for each of the 
+    jobs posted on a given page. This will typically include the job title, 
+    job location, posting company, date posted, and any stars assigned 
+    (if any). Parse the relevant information, and then store it. 
 
     Args: 
         driver: Selenium webdriver
@@ -42,18 +53,20 @@ def query_for_data(driver, json_dct, job, idx):
     """Grab all info. from the job posting
     
     This will include the job title, the job location, the 
-    posting company, the date posted, and then any stars assigned 
-    (if any). We'll also then click and get the job postings 
+    posting company, the date posted, and then any stars assigned. 
+    After grabbing this information, click and get the job posting's
     actual text. 
 
     Args: 
         driver: Selenium webdriver
         json_dct: dict 
-            Dictionary holding the current information we're storing for 
-            that job posting. 
+            Dictionary holding the current information that is being stored
+            for that job posting. 
         job: Selenium WebElement
         idx: int
-            Holds the # of the job posting we are on (0 indexed here). 
+            Holds the # of the job posting the program is on (0 indexed here). 
+
+    Return: dct
     """
 
     posting_title = job.find_element_by_class_name('title').text
@@ -89,11 +102,10 @@ def gen_output(json_dct, *args):
     """Prep json_dct to be stored in Mongo. 
 
     Add in all of the *args into the json_dct so that we can store it 
-    in Mongo. I'm expecting that the *args come in a specific order, 
-    given by the tuple of strings below (it'll hold the keys that we 
-    want to use to store these things in the json_dct). Also, the 
-    'num_stars' isn't necessarily expected to be passed in (whereas 
-    everything else is). 
+    in Mongo. This function expects that the *args come in a specific order, 
+    given by the tuple of strings below (it'll hold the keys to use to store 
+    these things in the json_dct). 'num_stars' isn't necessarily expected 
+    to be passed in (whereas everything else is). 
 
     Args: 
         json_dct: dict
@@ -101,6 +113,8 @@ def gen_output(json_dct, *args):
             added to using *args. 
         *args: Tuple
             Holds what to add to the json_dct. 
+
+    Return: dct
     """
     keys_to_add = ('job_title', 'location', 'date', 'company', 'num_stars')
     for arg, key in zip(args, keys_to_add): 
@@ -112,11 +126,15 @@ def gen_output(json_dct, *args):
 def grab_posting_txt(driver, job, idx): 
     """Grab the job posting's actual text. 
 
-    Here well have to click the job posting and then actually grab 
-    it's text. 
+    Click the job posting and grab it's text. 
 
     Args: 
+        driver: Selenium webdriver
         job: Selenium WebElement
+            Holds a reference to the current job the program is on. 
+        idx: int
+    
+    Return: str (posting text)
     """
 
     job_link = job.find_element_by_class_name('jobLink')
@@ -130,16 +148,19 @@ def grab_posting_txt(driver, job, idx):
 
     time.sleep(random.randint(3, 7))
     texts = driver.find_elements_by_class_name('jobDescriptionContent')
+
     return texts[idx].text
 
 def check_if_next(driver, num_pages): 
     """Check if there is a next page of job results to grab. 
 
-    Here, we'll see if there is another page we can click to. If so, 
-    we'll return `True`, otherwise `False`. 
-
     Args: 
         driver: Selenium webdriver 
+        num_pages: int
+            Holds the total number of pages that the original search 
+            showed. 
+
+    Return: bool
     """
     
     try: 
@@ -159,12 +180,14 @@ def check_if_next(driver, num_pages):
 def check_if_last_page(page_links, num_pages): 
     """Parse page links list. 
 
-    Figure out if the page we're on is our last page or not. 
+    Figure out if current page is the last page. 
 
     Args: 
         page_links: list
-            Holds Selenium WebElements
+            Holds Selenium WebElements that refer to page links. 
         num_pages: int
+
+    Return: bool or int
     """
 
     if len(page_links) == 1: 

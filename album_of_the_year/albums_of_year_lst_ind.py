@@ -1,3 +1,9 @@
+"""A module for grabbing user and critic scores of albums. 
+
+This module can be used to grab the user and critic scores 
+for all albums on the End Year Critic List on albumoftheyear.org.
+"""
+
 import os
 import sys
 wd = os.path.abspath('.')
@@ -7,35 +13,57 @@ from general_utilities.query_utilities import get_html, format_query
 from general_utilities.storage_utilities import store_in_mongo
 
 def process_album_title_hrefs(album_title_hrefs, album_titles): 
-    '''
-    Input: List
-    Output: Dictionary
+    """Grab the critic and user scores for each inputted href. 
 
-    For each of the inputted hrefs, go to the href and grab the overall 
-    critic and user scores. 
-    '''
+    Loop over the hrefs in `album_title_hrefs`, issue a get request
+    on the URL associated with that href, and then parse the content 
+    to grab the User and Critic scores for that album. Store the 
+    User and Critic scores in a dictionary along with the Album title, 
+    and then append that to a list to output for easy storage. 
+
+    Args: 
+    ----
+        album_title_hrefs: list of strings 
+            Holds the hrefs of each album title to issue a get
+            request on. 
+        album_titles: list of strings
+            Holds the album titles to store with the User and 
+            Critic scores that we're grabbing. This will allow 
+            identification of a User/Critic score with a particular
+            album. 
+
+    Return: list of dictionaries 
+    """
+
     base_url = 'http://www.albumoftheyear.org'
     final_json_lst = []
     for idx, href in enumerate(album_title_hrefs.values()[0]):
         soup = get_html(base_url + href)
+
         center_content = select_soup(soup, '#centerContent').values()[0][0]
         user_score = int(find_score(center_content, 'USER SCORE'))
         critic_score = int(find_score(center_content, 'CRITIC SCORE'))
+
         json_dct = {'Album Title': album_titles[idx], "User Score": user_score, 
                     "Critic Score": critic_score}
-
         final_json_lst.append(json_dct)
 
     return final_json_lst
 
 def find_score(content, score_str): 
-    '''
-    Input: bs4.element.Tag
-    Output: Integer
+    """Parse the inputted content to grab the inputted score. 
 
-    Parse the elements in the inputted bs4.element.Tag to grab the 
-    average user score for the inputted album. 
-    '''
+    Args: 
+    ---- 
+        content: bs4.element.Tag
+            Holds the content on the page from which to grab 
+            the score. 
+        score_str: str
+            Holds the CSS selector used to identify and grab the 
+            score from the page. 
+
+    Return: str of the score (an int)
+    """
 
     content_txt = content.text
     score_idx = content_txt.find(score_str) 

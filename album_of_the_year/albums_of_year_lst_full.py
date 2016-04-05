@@ -1,3 +1,13 @@
+"""A module for grabbing album information. 
+
+This module can be used to grab all available album information 
+from all albums on the End Year Critic List. It only grabs 
+information that is available on one of the pages at 
+albumoftheyear.org/list/summary/<year>/. For other information, 
+specifically User and Critic scores for each of these albums, 
+see `albums_of_the_year_lst_full.py`. 
+"""
+
 import sys
 import os
 wd = os.path.abspath('.')
@@ -7,34 +17,48 @@ from general_utilities.query_utilities import get_html, format_query
 from general_utilities.storage_utilities import store_in_mongo
 
 def rename_keys(input_dct): 
-    '''
-    Input: Dictionary
-    Output: Dictionary
+    """Rename keys in the dictionary to a more readable format. 
 
-    Rename keys in dictionary to be in readable format for our csv/json output.
-    '''
+    Args: 
+    ----
+        input_dct: dct 
+            Holds key-value pairs corresponding to a particular 
+            album's information. 
+
+    Return: dct with renamed keys 
+    """
 
     renaming_dct = {'.artistTitle': "Artist Title", '.albumTitle': "Album Title", 
             '.summaryPoints': "Summary Points", 
             '.summaryPointsMisc': "Summary Points Misc"}
     renamed_input_dct = {renaming_dct[k]: v for k, v in input_dct.iteritems()}
+
     return renamed_input_dct 
 
 def parse_contents(desired_contents): 
-    '''
-    Input: Dictionary
-    Output: List of Dictionaries
+    """Parse each album out of the inputted dictionary of lists. 
 
-    Essentially flatten the dictionary. Right now, the desired contents
-    is a dictionary where each value is a list, and I want to flatten this
-    so that there is only 1 value for each key (i.e. a bunch of JSON looking 
-    objects). 
-    '''
+    The desired contents of album information comes back as a 
+    JSON dictionary, where each pair correponds to a list of
+    values that we desire (e.g. a list of "Artist Title", a list 
+    of the "Album Title", etc.). This function will effectively 
+    flatten this dictionary of lists into a list of dictionaries, 
+    where there are as many entries as the length of one of the values
+    lists (i.e. each album gets its own dictionary). 
+
+    Args: 
+    ----
+        desired_contents: dct
+            Dictionary of album titles, album artists, etc. 
+
+    Return: list of dictionaries 
+    """
     final_lst = []
     
     lst_idx = 0 # Holds what index to start at in each value list. 
     points_misc_idx = 0 # This one has a slightly different format 
-                                # (potentially multiple values per artist/album). 
+                        # (potentially multiple values per artist/album). 
+
     while lst_idx < 50: 
         json_dict = {}
         for k, v in desired_contents.iteritems(): 
@@ -48,13 +72,26 @@ def parse_contents(desired_contents):
     return final_lst
 
 def parse_keys_contents(k, v, points_misc_idx, lst_idx): 
-    '''
-    Input: String, List, Integer, Integer
-    Output: Dictionary, Integer
+    """Parse the values for the inputted key. 
 
-    For each of the keys, parse the values for each artist and return 
-    a dictionary holding them. 
-    '''
+    Depending upon the key, parse the inputted values list to grab
+    the appropriate piece of information for the current album 
+    (denoted by the lst_idx). 
+
+    Args: 
+    ----
+        k: str 
+        v: list 
+            Holds the values associated with a particular key. 
+        points_misc_idx: int
+            Holds the points misc. index to index into the values 
+            list with if the key is equal to "Summary Points Misc".
+        lst_idx: int
+            Holds the index to index into the values list 
+            when the key is not equal to "Summary Points Misc". 
+
+    Return: dct of parsed values, updated points_misc_idx (int)
+    """
 
     if k == 'Summary Points Misc':
         values, points_misc_idx = parse_points_misc(v, points_misc_idx)
@@ -67,16 +104,26 @@ def parse_keys_contents(k, v, points_misc_idx, lst_idx):
     return values, points_misc_idx 
 
 def parse_points_misc(sum_points_misc_lst, points_misc_idx):
-    '''
-    Input: List, Integer
-    Output: Dict, Integer
+    """Parse the "Summary Points Misc" attribute. 
 
-    The summary points misc attribute is a little different in that it can have
-    multiple values per artist. We want to take all of these and store them 
-    separately as key value pairs in our final output. For the inputted 
-    possibilities list, we are going to grab each one of the possible values 
-    that are present for the given artist and output them as a dictionary.                
-    ''' 
+    The summary points misc attribute is a little different in 
+    that it can have  multiple values per artist. This function will
+    take all of these and store them separately as key value pairs 
+    in our final output. For the inputted possibilities list, grab 
+    each one of the possible values that are present and output them 
+    as a dictionary.                
+
+    Args: 
+    ----
+        sum_points_misc_lst: list 
+            Holds all of the summary points information for our 
+            artists. 
+        points_misc_idx: int 
+            Holds the index of where the `sum_points_misc_lst` needs
+            to be accessed. 
+
+    Return: dct of points values, updated points_misc_idx (int)
+    """
 
     values = {} 
     split_text = sum_points_misc_lst[points_misc_idx].split()
@@ -115,4 +162,5 @@ if __name__ == '__main__':
     desired_contents_text = grab_contents_key(desired_contents, "text")
     desired_contents_renamed = rename_keys(desired_contents_text)
     final_lst = parse_contents(desired_contents_renamed)
+    print final_lst
     store_in_mongo(final_lst, 'music', 'music_lists')

@@ -1,3 +1,16 @@
+"""A module for scraping CareerBuilder for jobs. 
+
+This module is the driver for a CareerBuilder scraper. 
+It controls the process of instantiating a Selenium 
+browser to scrape, and controlling that browser throughout
+the entire process. It also handles the Threading, parsing, 
+and storage that takes place. 
+
+Usage: 
+
+    python job_scraper.py <job title> <job location>
+"""
+
 import sys
 import os
 wd = os.path.abspath('.')
@@ -14,21 +27,22 @@ from general_utilities.storage_utilities import store_in_mongo
 from general_utilities.threading_utilities import HrefQueryThread
 
 def scrape_job_page(driver, job_title, job_location): 
-    """Scape a page of jobs from CareerBuilder.
+    """Scrape a page of jobs from CareerBuilder.
 
-    We will grab all the relevant information that we can for each of 
-    the jobs posted on a given page. This will include the job title, 
-    job location, posting company, and date posted. 
+    Grab all relevant information possible for each of the jobs 
+    posted on a given page. This will typically include the job title, 
+    job location, posting company, and date posted. Parse that data, 
+    and then store it in Mongo. 
 
     Args: 
+    ----
         driver: Selenium webdriver
         job_title: str
             String holding the job title we searched for. 
         job_location: str
             String holding the job location we searched for. 
     """
-
-    titles, locations, companies, dates, hrefs = query_for_data()
+    titles, locations, companies, dates, hrefs = query_for_data(driver)
 
     current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
     json_dct = {'search_title': job_title, \
@@ -56,13 +70,23 @@ def scrape_job_page(driver, job_title, job_location):
 
     store_in_mongo(mongo_update_lst, 'job_postings', 'careerbuilder')
 
-def query_for_data(): 
+def query_for_data(driver): 
     """Grab all the relevant data on a jobs page. 
     
-    For each page of jobs, we will ultimately want to grab each of 
-    the jobs title, location, posting company, and dates posted. Finally, 
-    we'll want to grab the href of the job posting, and use that to get 
-    the all of the jobs posting. 
+    Grab each of the job's titles, locations, posting companies, and 
+    dates posted. Finally, grab the href of the job posting. 
+
+    Args: 
+    ----
+        driver: Selenium webdriver
+
+    Return: 
+    ------
+        job_titles: list
+        job_locations: list 
+        posting_companies: list 
+        dates: list
+        hrefs: list 
     """
 
     job_titles = driver.find_elements_by_class_name('prefTitle')
@@ -78,17 +102,20 @@ def query_for_data():
 def gen_output(json_dct, title, location, company, date, thread, idx): 
     """Format the output dictionary that will end up going into Mongo. 
 
-    Basically, here I just want to actually store things in a dictionary 
-    via certain keys. I found this cleaner than putting it in the
-    scrape_job_page function. 
-
     Args: 
         json_dct: dict
         title: Selenium WebElement 
+            Holds the title text. 
         location: Selenium WebElement 
+            Holds the location text. 
         company: Selenium WebElement
+            Holds the company text. 
         date: Selenium WebElement
+            Holds the date text. 
         thread: RequestThreadInfo object
+            Holds the job posts actual text. 
+
+    Return: dct
     """
 
     # Need to make sure that the thread is done first. 
@@ -106,13 +133,15 @@ def gen_output(json_dct, title, location, company, date, thread, idx):
 def check_if_next(driver):
     """Check if there is a next page of job results to grab. 
 
-    Here, we'll grab the clickable job links on the bottom of
-    the page, and check if one of those reads 'Next', at which 
-    point we can click it. Otherwise, we'll just return `False` 
-    so that we can stop grabbing results from CareerBuilder. 
+    Grab the clickable job links on the bottom of the page, 
+    and check if one of those reads 'Next'. If so, click it
+    and return True (e.g. there is a next page of jobs). Otherwise
+    return False. 
 
     Args: 
         driver: Selenium webdriver
+
+    Return: bool 
     """
 
     # If the following class name is not found, then the next button
@@ -139,7 +168,7 @@ if __name__ == '__main__':
     
     # Navigate to the base URL
     base_URL = 'http://www.careerbuilder.com/'
-    query_params = (('search-key', job_title), ('search-loc', job_location))
+    query_params = (('keywords', job_title), ('location', job_location))
     driver = issue_driver_query(base_URL, query_params)
 
     # Grab num. jobs
