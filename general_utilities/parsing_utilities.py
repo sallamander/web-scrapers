@@ -1,11 +1,13 @@
 """A module to use for parsing text from websites.
 
-This module currently provides two functions, one for 
-parsing numbers out of text and the other for parsing 
+This module currently provides three functions.The first for 
+parsing numbers out of text, the second for parsing 
 out and returning the "visible" parts of a web page (e.g.
 there are certain tags that we want to avoid pretty much 
-all the time). 
+all the time), and the third for parsing out an inputted
+regex out of inputted text. 
 """
+
 import re
 
 def parse_num(input_txt, desired_idx): 
@@ -58,3 +60,27 @@ def find_visible_texts(element):
         return False
     else: 
         return True
+
+def parse_regex(regex, input_txt): 
+    """Parse the inputted text using the inputted regex. 
+
+    Args: 
+    ----
+        regex: str
+            Text to use as the regular expression to search for. 
+        input_text: str
+            Text to search over for the regular expression. 
+
+    Return: 
+    ------
+        matches: list 
+           This may be empty, depending on whether not any matches to 
+           the `regex` is found. 
+        parsed_txt: str
+            `input_txt` with any text matching the `regex` removed. 
+    """
+
+    matches = re.findall(regex, input_txt)
+    parsed_txt = re.sub(regex, '', input_txt)
+
+    return matches, parsed_txt
