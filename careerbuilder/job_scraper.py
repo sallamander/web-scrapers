@@ -89,15 +89,14 @@ def query_for_data(driver):
         hrefs: list 
     """
 
-    job_titles = driver.find_elements_by_class_name('prefTitle')
-    posting_companies = driver.find_elements_by_xpath(
-            "//td[@itemprop='hiringOrganization']")
-    job_locations = driver.find_elements_by_xpath(
-            "//div[@itemprop='jobLocation']") 
-    dates = driver.find_elements_by_xpath("//span[@class='time_posted']") 
+    job_titles = driver.find_elements_by_class_name('job-title')
+    job_texts = driver.find_elements_by_class_name('job-text')
+    posting_companies = job_texts[2::3]
+    job_locations = job_texts[::3] 
+    dates = driver.find_elements_by_css_selector('div .time-posted')
     hrefs = driver.find_elements_by_xpath("//h2//a")
-
-    return job_titles, job_locations, posting_companies, dates, hrefs
+        
+    return job_titles, job_locations, posting_companies, dates, hrefs 
 
 def gen_output(json_dct, title, location, company, date, thread, idx): 
     """Format the output dictionary that will end up going into Mongo. 
@@ -148,8 +147,7 @@ def check_if_next(driver):
     # doesn't exist and it will fail. The except block will then catch
     # it and return a False (i.e. there is no next page). 
     try: 
-        last_link = driver.find_element_by_class_name(
-                'JL_MXDLPagination2_next')
+        last_link = driver.find_element_by_xpath("//a[@aria-label='Next Page']")
         last_link.send_keys(Keys.ENTER)
         return True
     except: 
@@ -173,7 +171,7 @@ if __name__ == '__main__':
 
     # Grab num. jobs
     try: 
-        num_jobs_txt = driver.find_element_by_id('n_pnlJobResultsCount').text
+        num_jobs_txt = driver.find_element_by_css_selector('div .count').text
         num_jobs = int(parse_num(num_jobs_txt, 0)) 
     except: 
         print 'No jobs for search {} in {}'.format(job_title, job_location)
