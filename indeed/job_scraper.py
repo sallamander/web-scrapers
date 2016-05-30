@@ -1,10 +1,8 @@
 """A module for scraping Indeed for jobs. 
 
-This module is the driver for an Indeed scraper. 
-It controls the process of issuing requests, parsing the 
-contents of those requests, and storing the results. It also 
-handles the threading and multiprocessing that is used to 
-speed up the scraping process. 
+This module is the driver for an Indeed scraper. It controls the process of issuing 
+requests, parsing the contents of those requests, and storing them. It also handles
+the threading and multiprocessing that is used to speed up the scraping process. 
 
 Usage: 
 
@@ -28,24 +26,17 @@ from request_threading import RequestInfoThread
 def multiprocess_pages(base_URL, job_title, job_location, page_start): 
     """Grab the URLS and other relevant info. from job postings on the page. 
 
-    The Indeed URL used for job searching takes another parameter, 
-    `start`, that allows you to start the job search at jobs 10-20, 
-    20-30, etc. Use this to grab job results from multiple pages at
-    once. This function takes in the base_URL, adds that start={page_start} 
-    parameter to the URL, and then queries it. It passes the results on 
-    to a thread to grab the details from each job posting. It then 
-    grabs the results from each threading object and stores those. 
-
+    The Indeed URL used for job searching takes another parameter, `start`, that 
+    allows you to start the job search at jobs 10-20, 20-30, etc. Use this to grab
+    job results from multiple pages at once, passing the result from a page on to
+    a thread to grab the details from each job posting. 
+    
     Args: 
     ----
         base_URL: str 
-            Holds the base URL to add the page_start parameter to. 
         job_title: str 
-            Holds the job title used for the search. 
         job_location: str 
-            Holds the job location used for the search. 
         page_start: int 
-            Holds what the `start` parameter in the URL should be set to. 
     """
 
     url = base_URL + '&start=' + str(page_start)
@@ -65,9 +56,6 @@ def multiprocess_pages(base_URL, job_title, job_location, page_start):
     store_in_mongo(mongo_update_lst, 'job_postings', 'indeed')
 
 if __name__ == '__main__':
-    # I expect that at the very least a job title, job location, and radius
-    # will be passed in, so I'll attempt to get both of those within
-    # a try except and throw an error otherwise. 
     try: 
         job_title = sys.argv[1]
         job_location = sys.argv[2]
@@ -77,18 +65,17 @@ if __name__ == '__main__':
 
     base_URL = 'https://www.indeed.com/jobs?'
     query_parameters = ['q={}'.format('+'.join(job_title.split())),
-            '&l={}'.format('+'.join(job_location.split())), '&radius={}'.format(radius), 
-            '&sort=date', '&fromage=5']
+            '&l={}'.format('+'.join(job_location.split())), 
+            '&radius={}'.format(radius), '&sort=date', '&fromage=5']
 
     query_URL = format_query(base_URL, query_parameters)
 
-    # Get HTML for base query.
     html = get_html(query_URL)
     try: 
         num_jobs_txt = str(html.select('#searchCount'))
         num_jobs = int(parse_num(num_jobs_txt, 2))
     except: 
-        print 'No jobs for search {} in {}'.format(job_title, job_location)
+        print('No jobs for search {} in {}'.format(job_title, job_location))
         sys.exit(0)
 
     current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
@@ -96,12 +83,10 @@ if __name__ == '__main__':
             'date': current_date, 'title': job_title, 'location': job_location}
     store_in_mongo([storage_dct], 'job_numbers', 'indeed')
 
-    # Now we need to cycle through all of the job postings that we can and 
-    # grab the url pointing to it, to then query it. All of the jobs should 
-    # be available via the .turnstileLink class, and then the href attribute
-    # will point to the URL. I'm going to multiprocess and multithread this.  
+    # Cycle through all of the job postings that we can and grab the url pointing to
+    # it, to then query it. All of the jobs should be available via the 
+    # .turnstileLink class, and then the href attribute will point to the URL. 
     max_start_position = 1000 if num_jobs >= 1000 else num_jobs
-    # I'll need to be able to pass an iterable to the multiprocessing pool. 
     start_positions = range(0, max_start_position, 10)
     execute_queries = partial(multiprocess_pages, query_URL, \
             job_title, job_location)

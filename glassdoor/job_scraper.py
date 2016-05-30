@@ -1,9 +1,8 @@
 """A module for scraping Glassdoor for jobs. 
 
-This module is the driver for a Glassdoor scraper. It
-controls the process of instantiating a Selenium browser to 
-scrape, and controls that browser throughout the entire 
-process. It also handles parsing and storing our results. 
+This module is the driver for a Glassdoor scraper. It controls the process of
+instantiating a Selenium browser to scrape, and controls that browser throughout 
+the entire process. It also handles parsing and storing our results. 
 
 Usage: 
 
@@ -126,8 +125,6 @@ def gen_output(json_dct, *args):
 def grab_posting_txt(driver, job, idx): 
     """Grab the job posting's actual text. 
 
-    Click the job posting and grab it's text. 
-
     Args: 
         driver: Selenium webdriver
         job: Selenium WebElement
@@ -142,7 +139,7 @@ def grab_posting_txt(driver, job, idx):
     job_link.send_keys(Keys.ESCAPE)
 
     try: 
-        print job.find_element_by_class_name('reviews-tab-link').text
+        print(job.find_element_by_class_name('reviews-tab-link').text)
     except: 
         pass
 
@@ -157,8 +154,7 @@ def check_if_next(driver, num_pages):
     Args: 
         driver: Selenium webdriver 
         num_pages: int
-            Holds the total number of pages that the original search 
-            showed. 
+            Holds the total number of pages that the original search showed. 
 
     Return: bool
     """
@@ -174,7 +170,7 @@ def check_if_next(driver, num_pages):
         next_link.click()
         return True
     except Exception as e:
-        print e
+        print(e)
         return False
 
 def check_if_last_page(page_links, num_pages): 
@@ -201,9 +197,6 @@ def check_if_last_page(page_links, num_pages):
             return int(elem2_text) == num_pages
 
 if __name__ == '__main__':
-    # I expect that at the very least a job title and job location
-    # will be passed in, so I'll attempt to get both of those within
-    # a try except and throw an error otherwise. 
     try: 
         job_title = sys.argv[1]
         job_location = sys.argv[2]
@@ -212,8 +205,7 @@ if __name__ == '__main__':
     
     # Issue the job query. 
     base_URL = 'https://www.glassdoor.com/index.htm'
-    query_params = (('KeywordSearch', job_title), 
-            ('LocationSearch', job_location))
+    query_params = (('KeywordSearch', job_title), ('LocationSearch', job_location))
     driver = issue_driver_query(base_URL, query_params)
 
     # Find the text holding the number of jobs, and parse it. 
@@ -232,14 +224,12 @@ if __name__ == '__main__':
         num_pages_txt = driver.find_element_by_id('ResultsFooter').text
         num_pages = int(parse_num(num_pages_txt, 1))
     except: 
-        print 'No jobs for search {} in {}'.format(job_title, job_location)
+        print('No jobs for search {} in {}'.format(job_title, job_location))
         sys.exit(0)
-
-    # Find all the jobs. 
+    
+    # Give it a little time before starting to click and parse
     time.sleep(random.randint(6, 12))
 
-    # This loop will be used to keep clicking the next button after
-    # scraping jobs on that page. 
     is_next = True
     while is_next: 
         jobs = scrape_job_page(driver, job_title, job_location)

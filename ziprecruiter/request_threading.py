@@ -1,10 +1,8 @@
 """A module for threading requests and storing their results. 
 
-This module currently provides one class - `RequestInfoThread`. 
-It is meant to help issue get requests using threading, but 
-avoid creating a new connection to a db for each thread. It 
-does this by storing the results of the get request as an 
-attribute on the class. 
+This module currently provides one class - `RequestInfoThread`. It is meant to help
+issue get requests using threading, but avoid creating a new connection to a db for each thread. It does this by storing the results of the get request as an attribute
+on the class. 
 """
 
 import sys
@@ -22,27 +20,17 @@ from general_utilities.parsing_utilities import find_visible_texts
 class RequestInfoThread(Thread): 
     """Threading based class to issue get requests and store the results.  
     
-    RequestInfoThread issues a get request on the href from an 
-    inputted row (which represents a job), after grabbing all of its
-    relevant information. It then stores the results as an attribute 
-    available for later access. The motivation for using a class 
-    instead of simply passing a function to ThreadPool was to 
-    avoid creating a new connection with the database (here Mongo) 
-    for each get request (this would most likely overwhelm the db 
-    with connections). RequestInfoThread allows for later access of 
-    the results of the get request in order to perform multiple 
-    uploads/updates to the db. 
-
+    RequestInfoThread issues a get request on the href from an inputted row (which
+    represents a job), after grabbing all of its relevant information. The 
+    motivation for using a class instead of simply passing a function to 
+    ThreadPool was to avoid creating a new connection with the database (here Mongo) 
+    for each get request (this would most likely overwhelm the comp. with threads). 
 
     Args: 
     ----
         job_result: bs4.BeautifulSoup object.
-            Holds a job, including all of the info. that we want 
-            to parse from it. 
         job_title: str
-            Holds the job title used in the search query. 
         job_location: str
-            Holds the job location used in the search query. 
     """
 
     def __init__(self, job_result, job_title, job_location): 
@@ -57,11 +45,9 @@ class RequestInfoThread(Thread):
     def _request_info(self): 
         """Grab relevant information from the job result. 
 
-        Each job_result will contain a number of features that we will
-        want to grab. Grab these, and then it's href attribute. Use that 
-        href to actually issue a request for the job posting's text. 
-
-        Return: dct
+        Return: 
+        ------
+            json_dct: dct
         """
 
         current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
@@ -104,9 +90,6 @@ class RequestInfoThread(Thread):
     def _query_href(self, href): 
         """Grab the text from the href. 
 
-        Follow the href that is given in the job posting, and grab 
-        the posting text from there. 
-
         Args: 
         ----
             href: str 
@@ -123,7 +106,7 @@ class RequestInfoThread(Thread):
             texts = soup.findAll(text=True)
             visible_texts = filter(find_visible_texts, texts)
         except Exception as e: 
-            print e 
+            print(e)
             visible_texts = ['SSLError', 'happened']
 
         return ' '.join(visible_texts)

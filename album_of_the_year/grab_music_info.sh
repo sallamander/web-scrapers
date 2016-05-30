@@ -1,3 +1,5 @@
+#!bin/bash
+
 year=$1
 
 if [ -z $year ]; then 
@@ -5,12 +7,12 @@ if [ -z $year ]; then
     exit 1
 fi
 
-if [ $year -eq 2015 ]; then 
-    python albums_of_the_year_lst_ind.py 2015
-    python albums_of_the_year_lst_full.py 2015
+if [ $year -eq 2016 ]; then 
+    python albums_of_year_lst_full.py $year
+    python albums_of_year_lst_ind.py $year
     python end_year_critic_lists.py 
 else
-    python albums_of_the_year_lst_ind.py $year
-    python albums_of_the_year_lst_full.py $year
+    python albums_of_year_lst_full.py $year
+    python albums_of_year_lst_ind.py $year
 fi 
 

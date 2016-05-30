@@ -1,7 +1,6 @@
 """A module for special utilites used for scraping albumoftheyear.org
 
-This module contains helper functions used in during the scraping 
-of albumoftheyear.org. 
+This module contains helper functions used in during the scraping of albumoftheyear.org. 
 """
 import requests
 import pandas as pd
@@ -14,11 +13,11 @@ def select_soup(soup, css_selectors):
     Args: 
     ----
         soup: bs4.BeautifulSoup Object
-            Holds the parsed HTML content. 
         css_selectors: list of strings
-            Holds the CSS selectors to grab from the inputted soup. 
 
-    Return: dct
+    Return: 
+    ------
+        contents: dct
     """
     
     css_selectors = mk_list(css_selectors)
@@ -46,9 +45,6 @@ def mk_list(potential_lst):
 def grab_contents_key(contents, key): 
     """Grab the desired key from each soup item in contents values list. 
 
-    For the inputted contents, grab the desired key from each soup item 
-    in the values lists of the dictionary.
-
     Args:
     ----
         contents: dct 
@@ -56,36 +52,37 @@ def grab_contents_key(contents, key):
         key: str
             Holds what part of each soup item to grab. 
 
-    Return: dct
+    Return: 
+    ------
+        contents_dct: dct
     """
 
     if key == 'text': 
-        contents_dct = {k: [html.text.encode('ascii', 'xmlcharrefreplace') \
-                for html in v] for k, v in contents.iteritems()}
+        contents_dct = {}
+        for k, v in contents.items(): 
+            contents_dct[k] = [html.text.encode('ascii', 'xmlcharrefreplace') 
+                                   .decode('utf-8') for html in v] 
     elif key == 'a': 
         contents_dct = {k: [tag.find(key) for tag in v if tag is not None] \
-                for k, v in contents.iteritems()}
+                for k, v in contents.items()}
     elif key == 'href': 
         contents_dct = {k: [tag.get(key) for tag in v if tag is not None] \
-                for k, v in contents.iteritems()}
+                for k, v in contents.items()}
 
     return contents_dct
 
 def output_data_to_file(lst, filepath, file_format="csv", replace_nulls=None):
     """Save the inputted lst to the filepath. 
 
-    Save the list of dictionaries to the filepath location, 
-    using the inputted format (default is csv). Fill nulls with 
-    the passed in argument if specified.
+    Save the list of dictionaries to the filepath location, using the inputted 
+    format (default is csv). Fill nulls with the passed in argument if specified.
 
     Args: 
     ----
         lst: list of dictionaries
-            Holds the data to save to the filepath. 
         filepath: str
         file_format (optional): str
-        replace_nulls (optional): Varied
-            Element to fill nulls with. 
+        replace_nulls (optional): varied
     """
 
     df = pd.DataFrame(lst)

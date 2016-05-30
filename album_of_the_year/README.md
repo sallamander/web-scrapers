@@ -2,7 +2,7 @@
 
 This folder contains a web-scraper built to scrape [albumoftheyear](http://www.albumoftheyear.org/), and more specifically the end of the year music lists available at this site (see [here](http://www.albumoftheyear.org/list/summary/2016/)). By default, that link to the end of the year lists is set to the current year (now 2016), but you can change that year to look at previous years. 
 
-This scraper is built to grab a number of pieces of information for all of the albums that are on the `Music Year End List Aggregate` for the inputted year. The first thing it will do is go through and grab all of the information available at the `albumoftheyear.org/list/summary/{year}/` page. This includes the album title, artist, total points for the year, and the number of votes it received in certain categories (1st place, 2nd place, etc.). The second thing it will do is grab the overall user and critic score for each album (it'll do this by clicking on the href and scraping from that href). The third thing it will grab is where each of these albums fell on various critic lists. This is only available for the most recent year once it is outputted, though (so for now this is 2015). As a result of this last point, if a year prior to 2015 is inputted, only the first two pieces of information (all but the critic list information) from above will be grabbed. 
+This scraper is built to grab a number of pieces of information for all of the albums that are on the `Music Year End List Aggregate` for the inputted year. The first thing it will do is go through and grab all of the information available at the `albumoftheyear.org/list/summary/{year}/` page. This includes the album title, artist, total points for the year, and the number of votes it received in certain categories (1st place, 2nd place, etc.). The second thing it will do is grab the overall user and critic score for each album (it'll do this by clicking on the href and scraping from that href). The third thing it will grab is where each of these albums fell on various critic lists. This is only available for the most recent year once it is outputted, though (so for now this is 2016, and there isn't much on there). As a result of this last point, if a year prior to 2016 is inputted, only the first two pieces of information (all but the critic list information) from above will be grabbed. 
 
 ## Usage
 
@@ -11,8 +11,8 @@ It's mentioned above that there are three pieces of information that are grabbed
 No matter how you run it, you have to input a year (except for the `end_year_critic_lists.py` file). If you're running it via the individual scripts themselves, then you would type in the following: 
 
 ```python 
-python albums_of_the_year_lst_ind.py 2015
-python albums_of_the_year_lst_full.py 2015
+python albums_of_the_year_lst_ind.py 2016
+python albums_of_the_year_lst_full.py 2016
 python end_year_critic_lists.py 
 ```
 
@@ -21,7 +21,7 @@ python end_year_critic_lists.py
 If you wanted to run it via the bash script, you would type in the following: 
 
 ```bash 
-bash grab_music_info.sh 2015
+bash grab_music_info.sh 2016
 ```
 
 **Note**: This will run the first two python scripts above with the inputted year, and only run the third if the inputted year matches the most recent list posted to the site (2015). 

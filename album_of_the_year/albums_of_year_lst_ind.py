@@ -1,7 +1,7 @@
 """A module for grabbing user and critic scores of albums. 
 
-This module can be used to grab the user and critic scores 
-for all albums on the End Year Critic List on albumoftheyear.org.
+This module can be used to grab the user and critic scores for all albums on the 
+End Year Critic List on albumoftheyear.org.
 """
 
 import os
@@ -15,32 +15,29 @@ from general_utilities.storage_utilities import store_in_mongo
 def process_album_title_hrefs(album_title_hrefs, album_titles): 
     """Grab the critic and user scores for each inputted href. 
 
-    Loop over the hrefs in `album_title_hrefs`, issue a get request
-    on the URL associated with that href, and then parse the content 
-    to grab the User and Critic scores for that album. Store the 
-    User and Critic scores in a dictionary along with the Album title, 
-    and then append that to a list to output for easy storage. 
+    Loop over the hrefs in `album_title_hrefs`, issue a get request on the URL 
+    associated with that href, and then parse the content to grab the User and 
+    Critic scores for that album. Store the User and Critic scores in a dictionary
+    along with the Album title. Output it all in a list, with one entry per href. 
 
     Args: 
     ----
         album_title_hrefs: list of strings 
-            Holds the hrefs of each album title to issue a get
-            request on. 
         album_titles: list of strings
-            Holds the album titles to store with the User and 
-            Critic scores that we're grabbing. This will allow 
-            identification of a User/Critic score with a particular
-            album. 
 
-    Return: list of dictionaries 
+    Return: 
+    ------
+        final_json_lst: list
     """
 
     base_url = 'http://www.albumoftheyear.org'
     final_json_lst = []
-    for idx, href in enumerate(album_title_hrefs.values()[0]):
+    album_title_hrefs_lst = list(album_title_hrefs.values())
+    for idx, href in enumerate(album_title_hrefs_lst[0]):
         soup = get_html(base_url + href)
 
-        center_content = select_soup(soup, '#centerContent').values()[0][0]
+        center_content_lst = list(select_soup(soup, '#centerContent').values())
+        center_content = center_content_lst[0][0]
         user_score = int(find_score(center_content, 'USER SCORE'))
         critic_score = int(find_score(center_content, 'CRITIC SCORE'))
 
@@ -56,14 +53,13 @@ def find_score(content, score_str):
     Args: 
     ---- 
         content: bs4.element.Tag
-            Holds the content on the page from which to grab 
-            the score. 
         score_str: str
-            Holds the CSS selector used to identify and grab the 
-            score from the page. 
+            Holds the CSS selector used to identify and grab the score from the page. 
 
-    Return: str of the score (an int)
-    """
+    Return: 
+    ------
+        score: str
+    """    
 
     content_txt = content.text
     score_idx = content_txt.find(score_str) 
@@ -78,7 +74,7 @@ if __name__ == '__main__':
     try: 
         year = sys.argv[1]
     except Exception as e: 
-        print e
+        print(e)
         raise Exception('<Usage> Input a year to grab data music data for.')
 
     URL = 'http://www.albumoftheyear.org/list/summary/' + year + '/'
@@ -86,11 +82,11 @@ if __name__ == '__main__':
 
     css_selectors = ['.albumTitle']
     album_titles_contents = select_soup(soup, css_selectors)
-    album_titles = grab_contents_key(album_titles_contents, 'text').values()[0]
+    album_titles_lst = list(grab_contents_key(album_titles_contents, 'text').values())
+    album_titles = album_titles_lst[0]
     album_title_links = grab_contents_key(album_titles_contents, 'a')
     album_title_hrefs = grab_contents_key(album_title_links, 'href')
 
     final_json_lst = process_album_title_hrefs(album_title_hrefs, album_titles)
-    store_in_mongo(final_json_lst, 'music', 'music_lists', 
-            key="Album Title")
+    store_in_mongo(final_json_lst, 'music', 'music_lists', key="Album Title")
 

@@ -1,8 +1,6 @@
 """A module to help out with web requests. 
 
-This module currently provides a couple of helper
-functions for web requests - `format_query`, `get_hmtl`, 
-and `check_response_code`. Each is pretty simplistic. 
+This module currently provides a couple of helper functions for web requests - `format_query`, `get_hmtl`, and `check_response_code`. 
 """
 
 from bs4 import BeautifulSoup
@@ -11,15 +9,16 @@ import requests
 def format_query(base_url, query_parameters): 
     """Structure a URL query given inputted parameters. 
 
-    Take the inputted `base_url`, and add the inputted 
-    `query_parameters` to it. 
+    Take the inputted `base_url`, and add the inputted `query_parameters` to it. 
 
     Args: 
     ----
         base_url: str holding the base_url (mostly the domain)
         query_parameters: list of strings. 
 
-    Returns: str holding the formatted query URL.
+    Returns: 
+    -------
+        base_url: str
     """
 
     for query_param in query_parameters: 
@@ -30,15 +29,16 @@ def format_query(base_url, query_parameters):
 def get_html(url): 
     """Issue a get request on the inputted URL and parse the results.  
 
-    Issue a get request on the inputted `url`, and then parse the 
-    content using BeautifulSoup. 
+    Issue a get request on the inputted `url`, and then parse the content using
+    BeautifulSoup. 
 
     Args: 
     ----
         url: str
-            Holds the URL to get the HTML from.
     
-    Returns: bs4.BeautifulSoup object of parsed html
+    Returns: 
+    ------
+        soup: bs4.BeautifulSoup object
     """
 
     try: 
@@ -46,10 +46,11 @@ def get_html(url):
         good_response = check_response_code(response)
         if not good_response: 
             # Check the bad_url to see what happened.
-            print 'Bad URL: {}'.format(url)
+            print('Bad URL: {}'.format(url))
         soup = BeautifulSoup(response.content, 'html.parser')
         return soup
-    except: 
+    except Exception as e: 
+        print(e)
         error = "Error in contacting the URL - check that it is a valid URL!"
         raise RuntimeError(error)
 
@@ -59,7 +60,6 @@ def check_response_code(response):
     Args: 
     ----
         response: requests.models.Response
-            Holds the response from issuing a `get` request. 
 
     Returns: bool
     """
@@ -68,5 +68,5 @@ def check_response_code(response):
     if status_code == 200: 
         return True
     else: 
-        print "Status code is not 200, it's {}".format(status_code)
+        print("Status code is not 200, it's {}".format(status_code))
         return False

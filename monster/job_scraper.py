@@ -1,10 +1,9 @@
 """A module for scraping Monster for jobs. 
 
-This module is the driver for a Monster scraper. 
-It controls the process of instantiating a Selenium 
-browser to scrape, and controlling that browser throughout
-the entire process. It also handles the Threading, parsing, 
-and storage that takes place. 
+This module is the driver for a Monster scraper. It controls the process of
+instantiating a Selenium browser to scrape, and controlling that browser 
+throughout the entire process. It also handles the Threading, parsing, and 
+storage that takes place. 
 
 Usage: 
 
@@ -17,7 +16,6 @@ wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import datetime
 import pytz
-from itertools import izip
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from general_utilities.storage_utilities import store_in_mongo
@@ -29,19 +27,15 @@ from general_utilities.threading_utilities import HrefQueryThread
 def scrape_job_page(driver, job_title, job_location):
     """Scrape a page of jobs from Monster.
 
-    Grab everything that is possible (or relevant) for each of the 
-    jobs posted for a given page. This will typically include the job title, 
-    job location, posting company, and the date posted. From the given 
-    href, click the job posting itself and grab the text. Lastly, store
-    all of this in Mongo. 
+    Grab everything that is possible (or relevant) for each of the jobs posted 
+    for a given page. This will typically include the job title, job location,
+    posting company, the date posted, and the posting text. 
 
     Args: 
     ----
         driver: Selenium webdriver
         job_title: str
-            Job title to use in the search query. 
         job_location: str
-            Job locatino to use in the search query. 
     """
 
     titles, locations, companies, dates, hrefs = query_for_data(driver)
@@ -57,28 +51,24 @@ def scrape_job_page(driver, job_title, job_location):
         try: 
             thread = HrefQueryThread(href.get_attribute('href'))
         except: 
-            print 'Exception in href thread builder' 
+            print('Exception in href thread builder')
             thread = HrefQueryThread('')
         thread_lst.append(thread)
         thread.start()
     mongo_update_lst = []
     for title, location, company, date, thread in \
-            izip(titles, locations, companies, dates, thread_lst): 
+            zip(titles, locations, companies, dates, thread_lst): 
         try: 
             mongo_dct = gen_output(json_dct.copy(), title, location, 
                     company, date, thread)
             mongo_update_lst.append(mongo_dct)
         except: 
-            print 'Missed element in Monster!'
-
+            print('Missed element in Monster!')
 
     store_in_mongo(mongo_update_lst, 'job_postings', 'monster')
 
 def query_for_data(driver): 
     """Grab all relevant data on a jobs page. 
-
-    For each page of jobs, grab each of the job titles, locations, 
-    posting companies, dates posted, and hrefs. 
 
     Return: 
     ------
@@ -113,9 +103,11 @@ def gen_output(json_dct, title, location, company, date, thread):
         date: Selenium WebElement
         thread: RequestThreadInfo object
 
-    Return: dct
+    Return:
+    ------
+        json_dct: dct
     """
-    # Need to make sure that the thread is done first. 
+
     thread.join()
 
     json_dct['job_title'] = title.text
@@ -129,9 +121,8 @@ def gen_output(json_dct, title, location, company, date, thread):
 def check_if_next(driver): 
     """Check if there is a next page of job results to grab. 
 
-    Grab the clickable job links on the bottom of the page, and 
-    check if one of those reads 'Next'. If so, click it, and otherwise
-    return `False`. 
+    Grab the clickable job links on the bottom of the page, and check if one 
+    of those reads 'Next'. If so, click it, and otherwise return `False`. 
 
     Args: 
     ----
@@ -141,9 +132,8 @@ def check_if_next(driver):
     """
     
     page_links = driver.find_elements_by_class_name('page-link')
-    # page_links will now hold a list of all the links. The last 
-    # link in that list will hold 'Next' for the text, if we aren't
-    # on the last page of jobs. 
+    # page_links will now hold a list of all the links. The last link in that 
+    # list will hold 'Next' for the text, if we aren't on the last page of jobs. 
     last_link = page_links[-1] if page_links else None
     if last_link and last_link.text == 'Next': 
         last_link.send_keys(Keys.ENTER)
@@ -154,17 +144,18 @@ def check_if_next(driver):
 def get_num_jobs_txt(driver): 
     """Get the number of jobs text. 
 
-    It turns out this acts slightly different on OSX versus Ubuntu, 
-    and this function should alleviate that. The order of the two 
-    elements with 'page-title' is swapped in Ubuntu and OSX, and 
-    as a result the best way to do this is grab both elements text 
-    and concatenate. 
+    It turns out this acts slightly different on OSX versus Ubuntu, and this 
+    function should alleviate that. The order of the two elements with 'page-title'
+    is swapped in Ubuntu and OSX, and as a result the best way to do this is 
+    grab both elements text and concatenate. 
 
     Args: 
     ----
         driver: Selenium webdriver
 
-    Return: str
+    Return: 
+    ------
+        num_jobs_txt: str
     """
 
     page_titles = driver.find_elements_by_class_name('page-title')
@@ -173,9 +164,6 @@ def get_num_jobs_txt(driver):
     return num_jobs_txt
         
 if __name__ == '__main__':
-    # I expect that at the very least a job title, job location, and radius
-    # will be passed in, so I'll attempt to get both of those within
-    # a try except and throw an error otherwise. 
     try: 
         job_title = sys.argv[1]
         job_location = sys.argv[2]
@@ -195,7 +183,7 @@ if __name__ == '__main__':
         num_jobs_txt = get_num_jobs_txt(driver)
         num_jobs = int(parse_num(num_jobs_txt, 0))
     except: 
-        print 'No jobs for search {} in {}'.format(job_title, job_location)
+        print('No jobs for search {} in {}'.format(job_title, job_location))
         sys.exit(0)
 
     current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
@@ -203,8 +191,6 @@ if __name__ == '__main__':
             'date': current_date, 'title': job_title, 'location': job_location}
     store_in_mongo([storage_dct], 'job_numbers', 'monster')
     
-    # This loop will be used to keep clicking the next button after
-    # scraping jobs on that page. 
     is_next = True
     while is_next: 
         scrape_job_page(driver, job_title, job_location)

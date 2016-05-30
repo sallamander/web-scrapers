@@ -1,10 +1,9 @@
 """A module for scraping ZipRecruiter for jobs. 
 
-This module is the driver for a ZipRecruiter scraper. 
-It controls the process of issuing requests, parsing the 
-contents of those requests, and storing the results. It also 
-handles the threading and multiprocessing that is used to 
-speed up the scraping process. 
+This module is the driver for a ZipRecruiter scraper. It controls the process of
+issuing requests, parsing the contents of those requests, and storing the results. 
+It also handles the threading and multiprocessing that is used to speed up the
+scraping process. 
 
 Usage: 
 
@@ -27,25 +26,17 @@ from request_threading import RequestInfoThread
 def multiprocess_pages(base_URL, job_title, job_location, page_num): 
     """Grab the URLs and other relevant info. from job postings on the page. 
 
-    The ZipRecruiter URL used for job searching takes an additional 
-    parameter, `page`, that allows you to start the job search at page 
-    0-20 (20 is the max). Use this to grab job results from multiple
-    pages at once. This function here takes in the base_URL, and then 
-    adds that page={page_num} parameter to the URL, and then queries it. 
-    It passes the results on to a thread to grab the details from each 
-    job posting. It then grabs the results from each threading object and
-    stores those. 
+    The ZipRecruiter URL used for job searching takes an additional parameter,   
+    `page`, that allows you to start the job search at page 0-20 (20 is the max). 
+    Use this to grab job results from multiple pages at once, and then pass jobs
+    on to threads to grab relevant info. 
 
     Args: 
     ----
         base_URL: str 
-            Holds the base URL to add the page_start parameter to. 
         job_title: str 
-            Holds the job title used for the search. 
         job_location: str 
-            Holds the job location used for the search. 
         page_start: int 
-            Holds what the `start` parameter in the URL should be set to. 
     """
 
     url = query_URL + '&page=' + str(page_num)
@@ -64,9 +55,6 @@ def multiprocess_pages(base_URL, job_title, job_location, page_num):
     store_in_mongo(mongo_update_lst, 'job_postings', 'ziprecruiter')
     
 if __name__ == '__main__': 
-    # I expect that at the very least a job title, job location, and radius
-    # will be passed in, so I'll attempt to get both of those within
-    # a try except and throw an error otherwise. 
     try: 
         job_title = sys.argv[1]
         job_location = sys.argv[2]
@@ -81,15 +69,13 @@ if __name__ == '__main__':
             '&include_near_duplicates=1']
 
     query_URL = format_query(base_URL, query_parameters)
-
-    # Get HTML for base query. 
     html = get_html(query_URL)
 
     try: 
         num_jobs_txt = str(html.select('#job_results_headline')[0].text)
         num_jobs = int(parse_num(num_jobs_txt, 0))
     except: 
-        print 'No jobs for search {} in {}'.format(job_title, job_location)
+        print('No jobs for search {} in {}'.format(job_title, job_location))
         sys.exit(0)
 
     current_date = str(datetime.datetime.now(pytz.timezone('US/Mountain')))
@@ -97,12 +83,11 @@ if __name__ == '__main__':
             'date': current_date, 'title': job_title, 'location': job_location}
     store_in_mongo([storage_dct], 'job_numbers', 'ziprecruiter')
     
-    # Here we'll cycle through the pages of jobs to grab all of the 
-    # info. that we want. Each page holds 20 jobs, so the number of 
-    # pages we'll cyle through will be num_jobs / 20. The caveat, though
-    # is that they only give 20 pages to look through at maximum (hence 
-    # the min below). 
-    pages = min(20, num_jobs / 20 + 1)
+    # Cycle through the pages of jobs to grab all of the info. that we want. Each
+    # page holds 20 jobs, so the number of pages we'll cyle through will be
+    # num_jobs / 20. The caveat, though is that they only give 20 pages to look
+    # through at maximum (hence the min below). 
+    pages = min(20, num_jobs // 20 + 1)
     page_positions = range(1, pages + 1)
     execute_queries = partial(multiprocess_pages, query_URL,
             job_title, job_location)
