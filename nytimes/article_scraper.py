@@ -4,6 +4,8 @@ import sys
 import os
 wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
+import pandas as pd
+from datetime import timedelta
 from requests import get
 from time import sleep
 from general_utilities.query_utilities import check_response_code, get_html
@@ -121,6 +123,12 @@ if __name__ == '__main__':
     except: 
         raise Exception("Usage: python article_scraper.py start_dt end_dt")
 
+    dt_range = pd.date_range(start_dt, end_dt)
     api_key = os.environ['NYTIMES_API_KEY']
-    articles = scrape_nyt(api_key, start_dt, end_dt)
+
+    for start_dt in dt_range:
+        end_dt = start_dt + timedelta(days=1)
+        start_dt, end_dt = start_dt.strftime('%Y%m%d'), end_dt.strftime('%Y%m%d')
+        articles = scrape_nyt(api_key, start_dt, end_dt)
+
 
