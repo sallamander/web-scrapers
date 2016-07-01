@@ -6,7 +6,7 @@ wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 from requests import get
 from time import sleep
-from general_utilities.query_utilities import check_response_code
+from general_utilities.query_utilities import check_response_code, get_html
 
 def scrape_nyt(api_key, start_dt, end_dt): 
     """Scrape the NYTimes for all results within an inputted start and end date.
@@ -23,23 +23,23 @@ def scrape_nyt(api_key, start_dt, end_dt):
 
     Return: 
     ------
-        article_urls: list
+        articles: list
     """
     
-    article_urls = []
+    articles = []
     initial_response = scrape_single_page(api_key, start_dt, end_dt)
-    num_results = initial_response['response']['meta']['hits']
+    articles = parse_page_results(initial_response, articles)
 
-    article_urls = [doc['web_url'] for doc in initial_response['response']['docs']]
+    num_results = initial_response['response']['meta']['hits']
     if num_results > 10: 
         # They don't allow querying past the 100th page. 
         max_pages_to_search = min(100, num_results // 10)
         for page in range(1, max_pages_to_search): 
             sleep(1/5) # Use to avoid hitting the rate limit. 
             response = scrape_single_page(api_key, start_dt, end_dt, page=page)
-            article_urls = add_page_urls(article_urls, response)
+            articles = parse_page_results(response, articles) 
 
-    return article_urls
+    return articles
 
 def scrape_single_page(api_key, start_dt, end_dt, page=0): 
     """Issue a query against a single page of the NYTimes API for the inputted dates.
@@ -58,8 +58,12 @@ def scrape_single_page(api_key, start_dt, end_dt, page=0):
         response_json: dct
     """
 
-    params = {'begin_date' : start_dt, 
-              'end_dt' : end_dt, 
+
+    params = {'fq' : """section_name : ("Sports" "World" "U.S" "Technology" 
+                                        "Health" "Business" "Arts" "Science"
+                                        "Style" "Movies" "Travel" )""", 
+              'begin_date' : start_dt, 
+              'end_date' : end_dt, 
               'page': page, 
               'api-key': api_key
              }
@@ -74,24 +78,41 @@ def scrape_single_page(api_key, start_dt, end_dt, page=0):
 
     return response.json()
 
-def add_page_urls(article_urls, response): 
-    """Append any article URL's found in the inputted reponse to the `article_urls`.
+def parse_page_results(response, articles):
+    """Parse a single page of results, grabbing each article's desired attributes.
 
     Args: 
     ----
-        article_urls: list
-        response: requests.models.Response object
-            Expected to have a 'response' attribute, with a 'docs' attribute. 
+        response: dct
+        articles: list of dcts
 
     Return: 
     ------
-        article_urls: list
+        articles: list of dcts
+            Inputted articles list with additional parsed articles added to it 
     """
-
+     
+    # Special attributes that require no post-processing.
+    desired_attributes = ('source', 'subsection_name', 'section_name', 'web_url', 
+                          'news_desk', 'type_of_material', 'document_type')
     for doc in response['response']['docs']: 
-        article_urls.append(doc['web_url'])
+        article_dct = {}
+        for attr in desired_attributes: 
+            article_dct[attr] = doc.get(attr, None)
+        
+        keywords = doc.get('keywords', None)
+        headline_dct = doc.get('headline', None) 
 
-    return article_urls
+        if keywords:
+            keywords_lst = [keywords_dct['value'] for keywords_dct in keywords]
+            article_dct['keywords'] = keywords_lst
+        if headline_dct: 
+            headline = headline_dct['main']
+            article_dct['headline'] = headline
+
+        articles.append(article_dct)
+
+    return articles
 
 if __name__ == '__main__':
     try: 
@@ -101,5 +122,5 @@ if __name__ == '__main__':
         raise Exception("Usage: python article_scraper.py start_dt end_dt")
 
     api_key = os.environ['NYTIMES_API_KEY']
-    article_urls = scrape_nyt(api_key, start_dt, end_dt)
+    articles = scrape_nyt(api_key, start_dt, end_dt)
 
