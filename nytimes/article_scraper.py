@@ -5,9 +5,11 @@ import os
 wd = os.path.abspath('.')
 sys.path.append(wd + '/../')
 import pandas as pd
+import numpy as np
 from datetime import timedelta
 from requests import get
 from time import sleep
+from os.path import exists
 from general_utilities.query_utilities import check_response_code, get_html
 
 class NYTPageScraper(object): 
@@ -28,12 +30,32 @@ class NYTPageScraper(object):
     Args: 
     ----
         api_key: str
+        queries_path (optional): str
+            Holds a filepath location to keep track of successfully issued queries.
+            Expected to be pointed at a `.csv` file. 
     """
 
-    def __init__(self, api_key): 
+    def __init__(self, api_key, queries_path='work/queries.csv'): 
         self.api_key = api_key
         self.articles = [] 
+        self.queries_path = queries_path
         self.base_url = 'http://api.nytimes.com/svc/search/v2/articlesearch.json'
+        self.scrape = True 
+
+    def __enter__(self): 
+        """Set up `queries_df`, which hold which dates have already been scraped."""
+        if exists(self.queries_path): 
+            self.queries_df = pd.read_csv(self.queries_path, index_col=0, 
+                                          parse_dates=True)
+        else: 
+            self.queries_df = pd.DataFrame()
+
+        return self
+
+    def __exit__(self, *args): 
+        """Save the `queries_df` for later use."""
+        self.queries_df.sort_index(inplace=True)
+        self.queries_df.to_csv(self.queries_path)
 
     def scrape_dts(self, start_dt, end_dt, extra_params=None): 
         """Scrape the NYTimes for multiple dates, using the inputted parameters.
@@ -77,17 +99,22 @@ class NYTPageScraper(object):
         params['page'] = 0
         params['begin_date'] = begin_date
         params['end_date'] = end_date
+        
+        self.update_queries_df(begin_date, insert=True)
 
-        initial_response = self.scrape_single_page(params)
+        if self.scrape: 
+            initial_response = self.scrape_single_page(params)
 
-        num_results = initial_response['response']['meta']['hits']
-        if num_results > 10: 
-            max_pages_to_search = min(100, num_results // 10 + 1)
-            for page in range(1, max_pages_to_search): 
-                sleep(1/5) # Use to avoid hitting the rate limit. 
+            num_results = initial_response['response']['meta']['hits']
+            if num_results > 10: 
+                max_pages_to_search = min(100, num_results // 10 + 1)
+                for page in range(1, max_pages_to_search): 
+                    sleep(1/5) # Use to avoid hitting the rate limit. 
 
-                params['page'] = page
-                self.scrape_single_page(params)
+                    params['page'] = page
+                    self.scrape_single_page(params)
+        
+            self.update_queries_df(begin_date, insert=False)
 
     def scrape_single_page(self, params):
         """Scrape the NYT for a single page, using the inputted params. 
@@ -106,11 +133,13 @@ class NYTPageScraper(object):
             params['page'] = 0
             
         response = get(self.base_url, params=params)
+        status_code = response.status_code
 
-        good_response = check_response_code(response)
-        if not good_response: 
-            # Check the bad_url to see what happened.
+        if status_code != 200 and status_code != 429: 
             print('Bad URL: {}'.format(response.url))
+        elif status_code == 429: 
+            print('Rate limits hit for the day.')
+            sys.exit(0)
         else: 
             response_json = response.json()
             self.parse_page_results(response_json)
@@ -145,6 +174,36 @@ class NYTPageScraper(object):
 
             self.articles.append(article_dct)
 
+    def update_queries_df(self, update_dt, insert=True): 
+        """Modify `self.queries_df` for the inputted dates. 
+
+        `self.queries_df` will be used to keep track of dates that have already been
+        scraped. It is indexed by date, and has one column (`scraped`) that holds a 1
+        if the date has already been scraped for and a 0 otherwise. 
+
+        If `insert` is True, check if the inputted date is already in 
+        `self.queries_df`. If it isn't, insert a new observation with a 0 value to
+        denote that the date has not been scraped yet. If `insert` is False, update
+        the value of the inputted date in `self.queries_df` with a 1. 
+
+        Args:
+        ----
+            update_dt: str
+            insert (optional): bool
+
+        """
+
+        update_value = 0 if insert else 1
+        update_dt = pd.to_datetime(update_dt)
+        
+        if update_dt in self.queries_df.index: 
+            self.scrape = not self.queries_df.loc[update_dt, 'scraped']
+        else: 
+            self.scrape = 1
+
+        if self.scrape:
+            self.queries_df.loc[update_dt, 'scraped'] = update_value
+
 if __name__ == '__main__':
     try: 
         start_dt = sys.argv[1]
@@ -158,6 +217,6 @@ if __name__ == '__main__':
                     }
 
     api_key = os.environ['NYTIMES_API_KEY']
-    nyt_scraper = NYTPageScraper(api_key)
-    nyt_scraper.scrape_dts(start_dt, end_dt, extra_params)
+    with NYTPageScraper(api_key) as nyt_scraper: 
+        nyt_scraper.scrape_dts(start_dt, end_dt, extra_params)
 
