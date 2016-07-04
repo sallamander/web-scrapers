@@ -10,6 +10,7 @@ from datetime import timedelta
 from requests import get
 from time import sleep
 from os.path import exists
+from pymongo import MongoClient
 from general_utilities.query_utilities import check_response_code, get_html
 
 class NYTPageScraper(object): 
@@ -43,12 +44,24 @@ class NYTPageScraper(object):
         self.scrape = True 
 
     def __enter__(self): 
-        """Set up `queries_df`, which hold which dates have already been scraped."""
+        """Set up to make sure there is no duplicate scraping/storing.""" 
         if exists(self.queries_path): 
+            # Use to ensure that there is no duplicate scraping in terms of dates. 
             self.queries_df = pd.read_csv(self.queries_path, index_col=0, 
                                           parse_dates=True)
         else: 
             self.queries_df = pd.DataFrame()
+
+        # Use to ensure that there are no duplicate web_urls grabbed. 
+        client = MongoClient()
+        db = client['nytimes']
+        collection = db['gen_articles']
+
+        res = collection.find({'web_url': {'$exists': 'true'}}, {'web_url': True, 
+                               '_id': False})
+        res_lst = list(res)
+        self.web_urls = set(article['web_url'] for article in res_lst)
+        client.close()
 
         return self
 
@@ -114,6 +127,7 @@ class NYTPageScraper(object):
                     params['page'] = page
                     self.scrape_single_page(params)
         
+            self.dump_articles()
             self.update_queries_df(begin_date, insert=False)
 
     def scrape_single_page(self, params):
@@ -172,7 +186,20 @@ class NYTPageScraper(object):
                 headline = headline_dct['main']
                 article_dct['headline'] = headline
 
-            self.articles.append(article_dct)
+            if article_dct['web_url'] not in self.web_urls: 
+                self.articles.append(article_dct)
+
+    def dump_articles(self): 
+        """Dump articles list into Mongo."""
+
+        if self.articles: 
+            client = MongoClient()
+            db = client['nytimes']
+            collection = db['gen_articles']
+            collection.insert_many(self.articles)
+            client.close()
+
+            self.articles = [] # Start each day of scraping with an empty list. 
 
     def update_queries_df(self, update_dt, insert=True): 
         """Modify `self.queries_df` for the inputted dates. 
@@ -203,6 +230,8 @@ class NYTPageScraper(object):
 
         if self.scrape:
             self.queries_df.loc[update_dt, 'scraped'] = update_value
+
+
 
 if __name__ == '__main__':
     try: 
