@@ -12,6 +12,7 @@ from time import sleep
 from os.path import exists
 from pymongo import MongoClient
 from general_utilities.query_utilities import check_response_code, get_html
+from general_utilities.storage_utilities import store_in_mongo
 
 class NYTPageScraper(object): 
     """Scraper for pages of results returned by the Article Search API from NYTimes.
@@ -169,7 +170,8 @@ class NYTPageScraper(object):
          
         # Attributes that require no post-processing/farther parsing. 
         desired_attributes = ('source', 'subsection_name', 'section_name', 'web_url', 
-                              'news_desk', 'type_of_material', 'document_type')
+                              'news_desk', 'type_of_material', 'document_type',
+                              'pub_date')
 
         for doc in response_json['response']['docs']: 
             article_dct = {}
@@ -231,7 +233,78 @@ class NYTPageScraper(object):
         if self.scrape:
             self.queries_df.loc[update_dt, 'scraped'] = update_value
 
+class NYTArticleScraper(object): 
+    """Scraper for URLs pointing at New York Times articles.
 
+    Args: 
+    ----
+        db_name: str
+        coll_name: str
+    """
+
+    def __init__(self, db_name, coll_name): 
+        self.db_name = db_name
+        self.coll_name = coll_name
+
+    def __enter__(self): 
+        """Set up URL list for scraping."""
+
+        client = MongoClient()
+        db = client[self.db_name]
+        collection = db[self.coll_name]
+
+        res = collection.find({'web_url': {'$exists': True}, 
+                                    'text' : {'$exists': False}}, 
+                               {'web_url': True, '_id': False})
+
+        self.articles_to_scrape = list(res)
+        client.close()
+
+        return self
+
+    def __exit__(self, *args): 
+        """Ensure that any URLs scraped for get their text attributes updated."""
+        
+        store_in_mongo(self.articles_to_scrape, self.db_name, self.coll_name, 
+                       key='web_url')
+
+    def scrape_pages(self):
+        """Scrape all pages stored in `self.web_urls`."""
+
+        for article in self.articles_to_scrape:
+            url = article['web_url']
+            
+            if url.startswith('/'):
+                url = 'http://www.nytimes.com' + url
+            sleep(1/20)
+            soup = get_html(url)
+            article_txt = self._parse_soup(soup)
+
+            if article_txt: 
+                article['text'] = article_txt
+
+    def _parse_soup(self, soup):
+        """Parse the inputted `soup`.
+
+        Args:
+        ----
+            soup: bs4.BeautifulSoup object
+            type_of_material: str
+        
+        Returns: 
+        -------
+            article_txt: str
+        """
+
+        content = soup.find('div', attrs={'class': 'story-body'})
+
+        if content: 
+            lines = content.findAll('p')
+            article_txt = ' '.join([line.text for line in lines])
+        else: 
+            article_txt = None
+
+        return article_txt
 
 if __name__ == '__main__':
     try: 
@@ -240,12 +313,11 @@ if __name__ == '__main__':
     except: 
         raise Exception("Usage: python article_scraper.py start_dt end_dt")
 
-    extra_params = {'fq' : """section_name : ("Sports" "World" "U.S" "Technology" 
-                                               "Health" "Business" "Arts" "Science"
-                                               "Style" "Movies" "Travel" )""", 
-                    }
+    extra_params = {'fq' : """source:("The New York Times") AND type_of_material:("News")"""}
 
     api_key = os.environ['NYTIMES_API_KEY']
-    with NYTPageScraper(api_key) as nyt_scraper: 
-        nyt_scraper.scrape_dts(start_dt, end_dt, extra_params)
+    with NYTPageScraper(api_key, queries_path='work/general.csv') as page_scraper: 
+        page_scraper.scrape_dts(start_dt, end_dt, extra_params)
 
+    with NYTArticleScraper('nytimes', 'gen_articles') as article_scraper: 
+        article_scraper.scrape_pages()
