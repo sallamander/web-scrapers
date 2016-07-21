@@ -31,14 +31,12 @@ class NYTPageScraper(object):
 
     Args: 
     ----
-        api_key: str
         queries_path (optional): str
             Holds a filepath location to keep track of successfully issued queries.
             Expected to be pointed at a `.csv` file. 
     """
 
-    def __init__(self, api_key, queries_path='work/queries.csv'): 
-        self.api_key = api_key
+    def __init__(self, queries_path='work/queries.csv'): 
         self.articles = [] 
         self.queries_path = queries_path
         self.base_url = 'http://api.nytimes.com/svc/search/v2/articlesearch.json'
@@ -316,7 +314,8 @@ if __name__ == '__main__':
     extra_params = {'fq' : """source:("The New York Times") AND type_of_material:("News")"""}
 
     api_key = os.environ['NYTIMES_API_KEY']
-    with NYTPageScraper(api_key, queries_path='work/general.csv') as page_scraper: 
+    extra_params['api-key'] = api_key
+    with NYTPageScraper(queries_path='work/general.csv') as page_scraper: 
         page_scraper.scrape_dts(start_dt, end_dt, extra_params)
 
     with NYTArticleScraper('nytimes', 'gen_articles') as article_scraper: 
