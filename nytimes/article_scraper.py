@@ -305,18 +305,23 @@ class NYTArticleScraper(object):
         return article_txt
 
 if __name__ == '__main__':
-    try: 
-        start_dt = sys.argv[1]
-        end_dt = sys.argv[2]
-    except: 
-        raise Exception("Usage: python article_scraper.py start_dt end_dt")
+    if len(sys.argv) >= 2: 
+        try: 
+            start_dt = sys.argv[1]
+            end_dt = sys.argv[2]
+        except: 
+            error_msg = "Must pass in both a starting and ending date!"
+            raise Exception(error_msg)
+    else: 
+        start_dt, end_dt = None, None
 
     extra_params = {'fq' : """source:("The New York Times") AND type_of_material:("News")"""}
 
     api_key = os.environ['NYTIMES_API_KEY']
     extra_params['api-key'] = api_key
-    with NYTPageScraper(queries_path='work/general.csv') as page_scraper: 
-        page_scraper.scrape_dts(start_dt, end_dt, extra_params)
+    if start_dt and end_dt: 
+        with NYTPageScraper(queries_path='work/general.csv') as page_scraper: 
+            page_scraper.scrape_dts(start_dt, end_dt, extra_params)
 
     with NYTArticleScraper('nytimes', 'gen_articles') as article_scraper: 
         article_scraper.scrape_pages()
